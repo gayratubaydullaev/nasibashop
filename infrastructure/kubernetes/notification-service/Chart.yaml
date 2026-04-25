@@ -1,0 +1,6 @@
+apiVersion: v2
+name: notification-service
+description: Helm chart for NasibaShop Notification Service (NestJS + MongoDB + Socket.IO).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

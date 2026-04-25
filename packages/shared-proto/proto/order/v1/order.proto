@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package nasibashop.order.v1;
+
+import "common/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/nasibashop/nasibashop/packages/shared-proto/gen/go/order/v1;orderv1";
+option java_multiple_files = true;
+option java_outer_classname = "OrderProto";
+option java_package = "uz.nasibashop.order.v1";
+
+service OrderService {
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc ListMyOrders(ListMyOrdersRequest) returns (ListOrdersResponse);
+  rpc ListStoreOrders(ListStoreOrdersRequest) returns (ListOrdersResponse);
+  rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (UpdateOrderStatusResponse);
+  rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+}
+
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  ORDER_STATUS_NEW = 1;
+  ORDER_STATUS_CONFIRMED = 2;
+  ORDER_STATUS_PREPARING = 3;
+  ORDER_STATUS_SHIPPED = 4;
+  ORDER_STATUS_READY_FOR_PICKUP = 5;
+  ORDER_STATUS_DELIVERED = 6;
+  ORDER_STATUS_PICKED_UP = 7;
+  ORDER_STATUS_CANCELLED = 8;
+}
+
+enum FulfillmentType {
+  FULFILLMENT_TYPE_UNSPECIFIED = 0;
+  FULFILLMENT_TYPE_DELIVERY = 1;
+  FULFILLMENT_TYPE_PICKUP = 2;
+}
+
+enum PaymentMethod {
+  PAYMENT_METHOD_UNSPECIFIED = 0;
+  PAYMENT_METHOD_PAYME = 1;
+  PAYMENT_METHOD_CLICK = 2;
+  PAYMENT_METHOD_UZCARD = 3;
+  PAYMENT_METHOD_CASH_ON_DELIVERY = 4;
+}
+
+message Order {
+  string id = 1;
+  string user_id = 2;
+  string store_id = 3;
+  repeated OrderItem items = 4;
+  OrderStatus status = 5;
+  FulfillmentType fulfillment_type = 6;
+  PaymentMethod payment_method = 7;
+  nasibashop.common.v1.Money subtotal = 8;
+  nasibashop.common.v1.Money delivery_fee = 9;
+  nasibashop.common.v1.Money discount_total = 10;
+  nasibashop.common.v1.Money total = 11;
+  nasibashop.common.v1.Address delivery_address = 12;
+  string pickup_store_id = 13;
+  string payment_id = 14;
+  string delivery_id = 15;
+  repeated OrderStatusHistory status_history = 16;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+}
+
+message OrderItem {
+  string id = 1;
+  string product_id = 2;
+  string variant_id = 3;
+  string sku = 4;
+  string title_uz = 5;
+  int32 quantity = 6;
+  nasibashop.common.v1.Money unit_price = 7;
+  nasibashop.common.v1.Money total_price = 8;
+}
+
+message OrderStatusHistory {
+  string id = 1;
+  OrderStatus old_status = 2;
+  OrderStatus new_status = 3;
+  string changed_by = 4;
+  string reason = 5;
+  google.protobuf.Timestamp changed_at = 6;
+}
+
+message CreateOrderRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  string user_id = 2;
+  string store_id = 3;
+  repeated CreateOrderItem items = 4;
+  FulfillmentType fulfillment_type = 5;
+  PaymentMethod payment_method = 6;
+  nasibashop.common.v1.Address delivery_address = 7;
+  string pickup_store_id = 8;
+}
+
+message CreateOrderItem {
+  string product_id = 1;
+  string variant_id = 2;
+  int32 quantity = 3;
+}
+
+message CreateOrderResponse {
+  Order order = 1;
+}
+
+message GetOrderRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  string id = 2;
+}
+
+message GetOrderResponse {
+  Order order = 1;
+}
+
+message ListMyOrdersRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  string user_id = 2;
+  nasibashop.common.v1.PaginationRequest pagination = 3;
+}
+
+message ListStoreOrdersRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  string store_id = 2;
+  repeated OrderStatus statuses = 3;
+  google.protobuf.Timestamp created_from = 4;
+  google.protobuf.Timestamp created_to = 5;
+  nasibashop.common.v1.PaginationRequest pagination = 6;
+}
+
+message ListOrdersResponse {
+  repeated Order orders = 1;
+  nasibashop.common.v1.PaginationResponse pagination = 2;
+}
+
+message UpdateOrderStatusRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  string id = 2;
+  OrderStatus status = 3;
+  string reason = 4;
+}
+
+message UpdateOrderStatusResponse {
+  Order order = 1;
+}
+
+message CancelOrderRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  string id = 2;
+  string reason = 3;
+}
+
+message CancelOrderResponse {
+  Order order = 1;
+}

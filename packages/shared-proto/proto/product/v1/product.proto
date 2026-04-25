@@ -1,0 +1,157 @@
+syntax = "proto3";
+
+package nasibashop.product.v1;
+
+import "common/v1/common.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/nasibashop/nasibashop/packages/shared-proto/gen/go/product/v1;productv1";
+option java_multiple_files = true;
+option java_outer_classname = "ProductProto";
+option java_package = "uz.nasibashop.product.v1";
+
+service ProductService {
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+  rpc UpdateProduct(UpdateProductRequest) returns (UpdateProductResponse);
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  rpc GetCategories(GetCategoriesRequest) returns (GetCategoriesResponse);
+  rpc UpdateStock(UpdateStockRequest) returns (UpdateStockResponse);
+}
+
+enum ProductStatus {
+  PRODUCT_STATUS_UNSPECIFIED = 0;
+  PRODUCT_STATUS_DRAFT = 1;
+  PRODUCT_STATUS_ACTIVE = 2;
+  PRODUCT_STATUS_ARCHIVED = 3;
+}
+
+message Product {
+  string id = 1;
+  string store_id = 2;
+  string category_id = 3;
+  string title_uz = 4;
+  string description_uz = 5;
+  string brand = 6;
+  nasibashop.common.v1.Money price = 7;
+  int32 discount_percent = 8;
+  ProductStatus status = 9;
+  repeated ProductVariant variants = 10;
+  repeated ProductImage images = 11;
+  nasibashop.common.v1.AuditMetadata audit = 12;
+}
+
+message ProductFull {
+  Product product = 1;
+  Category category = 2;
+  repeated Stock stocks = 3;
+}
+
+message ProductVariant {
+  string id = 1;
+  string product_id = 2;
+  string sku = 3;
+  string color = 4;
+  string size = 5;
+  nasibashop.common.v1.Money price_override = 6;
+  bool active = 7;
+}
+
+message ProductImage {
+  string id = 1;
+  string product_id = 2;
+  string media_id = 3;
+  string url = 4;
+  string alt_text = 5;
+  int32 sort_order = 6;
+}
+
+message Category {
+  string id = 1;
+  string parent_id = 2;
+  string slug = 3;
+  string name_uz = 4;
+  string description_uz = 5;
+  int32 sort_order = 6;
+  repeated Category children = 7;
+}
+
+message Stock {
+  string id = 1;
+  string product_id = 2;
+  string variant_id = 3;
+  string store_id = 4;
+  int32 quantity = 5;
+  int32 reserved_quantity = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message ProductFilters {
+  string query = 1;
+  string category_id = 2;
+  string store_id = 3;
+  string brand = 4;
+  nasibashop.common.v1.Money min_price = 5;
+  nasibashop.common.v1.Money max_price = 6;
+  bool in_stock_only = 7;
+  ProductStatus status = 8;
+}
+
+message CreateProductRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  Product product = 2;
+}
+
+message CreateProductResponse {
+  Product product = 1;
+}
+
+message UpdateProductRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  string id = 2;
+  Product product = 3;
+}
+
+message UpdateProductResponse {
+  Product product = 1;
+}
+
+message GetProductRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  string id = 2;
+}
+
+message GetProductResponse {
+  ProductFull product = 1;
+}
+
+message ListProductsRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  ProductFilters filters = 2;
+  nasibashop.common.v1.PaginationRequest pagination = 3;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+  nasibashop.common.v1.PaginationResponse pagination = 2;
+}
+
+message GetCategoriesRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+}
+
+message GetCategoriesResponse {
+  repeated Category categories = 1;
+}
+
+message UpdateStockRequest {
+  nasibashop.common.v1.RequestMetadata metadata = 1;
+  string product_id = 2;
+  string variant_id = 3;
+  string store_id = 4;
+  int32 quantity = 5;
+}
+
+message UpdateStockResponse {
+  Stock stock = 1;
+}

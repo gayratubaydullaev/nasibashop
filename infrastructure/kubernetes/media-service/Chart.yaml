@@ -1,0 +1,6 @@
+apiVersion: v2
+name: media-service
+description: Helm chart for NasibaShop Media Service (Go, uploads + Postgres + Kafka).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

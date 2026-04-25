@@ -1,0 +1,6 @@
+apiVersion: v2
+name: delivery-service
+description: Helm chart for NasibaShop Delivery Service (Go, HTTP).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

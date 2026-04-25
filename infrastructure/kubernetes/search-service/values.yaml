@@ -1,0 +1,75 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/nasibashop/search-service
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+service:
+  type: ClusterIP
+  httpPort: 8086
+
+env:
+  httpPort: "8086"
+  meiliUrl: "http://meilisearch.infrastructure.svc.cluster.local:7700"
+  meiliIndex: products
+  productServiceUrl: "http://product-service.infrastructure.svc.cluster.local:8083"
+  kafkaBrokers: kafka.infrastructure.svc.cluster.local:9092
+
+secrets:
+  existingSecret: search-service-secrets
+  meiliMasterKeyKey: MEILI_MASTER_KEY
+  # Bo‘sh qoldiring — env qo‘shilmaydi (dev). Bo‘lsa: secret kaliti nomi, optional: true
+  reindexApiKeyKey: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+probes:
+  liveness:
+    path: /health/live
+    initialDelaySeconds: 20
+    periodSeconds: 20
+  readiness:
+    path: /health/ready
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package nasibashop.common.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/nasibashop/nasibashop/packages/shared-proto/gen/go/common/v1;commonv1";
+option java_multiple_files = true;
+option java_outer_classname = "CommonProto";
+option java_package = "uz.nasibashop.common.v1";
+
+message Money {
+  string currency_code = 1;
+  int64 units = 2;
+}
+
+message PaginationRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message PaginationResponse {
+  string next_page_token = 1;
+  int64 total_count = 2;
+}
+
+message Address {
+  string id = 1;
+  string user_id = 2;
+  string label = 3;
+  string region = 4;
+  string district = 5;
+  string street = 6;
+  string house = 7;
+  string apartment = 8;
+  string landmark = 9;
+  double latitude = 10;
+  double longitude = 11;
+  bool is_default = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+}
+
+message AuditMetadata {
+  string created_by = 1;
+  string updated_by = 2;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message RequestMetadata {
+  string trace_id = 1;
+  string actor_user_id = 2;
+  string actor_role = 3;
+}

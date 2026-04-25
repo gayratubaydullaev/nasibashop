@@ -1,0 +1,11 @@
+{
+  "name": "nasibashop-monorepo",
+  "private": true,
+  "description": "Скрипты уровня монорепозитория (сервисы и фронты — в своих package.json).",
+  "scripts": {
+    "jwt:dev": "node scripts/generate-dev-jwt-keys.cjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

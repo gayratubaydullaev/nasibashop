@@ -1,0 +1,247 @@
+_format_version: "3.0"
+
+# Локальная разработка: upstream — host.docker.internal (см. docker-compose extra_hosts).
+# Порты: user 8080, product 8083, order 8081, payment 8082, delivery 8085, search 8086, notification 8087, media 8088.
+#
+# JWT (RS256): плагин jwt на защищённых префиксах; iss в токене = nasibashop-user-service (см. user-service JWT_ISSUER).
+# Ключи только для dev: declarative/dev-not-for-prod/ — см. README там.
+
+consumers:
+  - username: nasibashop-dev
+    jwt_secrets:
+      - algorithm: RS256
+        key: nasibashop-user-service
+        rsa_public_key: |
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmdLP8Rl9nHncgrobSjs2
+          xu4/sHRPNBzbP2vvc6NLY8z6aF6Y0pc62hsvyo++aFiUVDlO6gRxEnDRIG4GeoiU
+          DfMyH36DfGtx+nMpSydL17VmircROrqCuC99fkeANsKFsUtkdmqGLpCm4Y4xKN46
+          DsCZG8b5T6UJ8CgfAUcKU65V+F5B6Vuvtg7AluZNbPcwTC2hPtnUUQdmnGuG1paj
+          e4NRlVUGr8DoujxaCn/B9pDxEk5Nf+NySH9NbSmaWdYYF9KSVfLAQ6BwVdKd6PYv
+          uIk3Zk5W25vctFHEm8ivvWdKJfwbS1Cqv0av+q7Hax+URlU4vHgPnD1qUBG8qSCL
+          YwIDAQAB
+          -----END PUBLIC KEY-----
+
+services:
+  - name: user-service-auth
+    url: http://host.docker.internal:8080/auth
+    routes:
+      - name: user-auth
+        paths:
+          - /api/auth
+        strip_path: true
+
+  - name: user-service-users
+    url: http://host.docker.internal:8080/users
+    routes:
+      - name: user-users
+        paths:
+          - /api/users
+        strip_path: true
+        plugins:
+          - name: jwt
+            config:
+              uri_param_names: []
+              header_names:
+                - authorization
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
+          - name: rate-limiting
+            config:
+              second: 30
+              policy: local
+              limit_by: consumer
+              fault_tolerant: true
+
+  - name: product-service-products
+    url: http://host.docker.internal:8083/products
+    routes:
+      - name: product-products
+        paths:
+          - /api/products
+        strip_path: true
+
+  - name: product-service-categories
+    url: http://host.docker.internal:8083/categories
+    routes:
+      - name: product-categories
+        paths:
+          - /api/categories
+        strip_path: true
+
+  - name: order-service
+    url: http://host.docker.internal:8081
+    routes:
+      - name: order-api
+        paths:
+          - /api/orders
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              uri_param_names: []
+              header_names:
+                - authorization
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
+          - name: rate-limiting
+            config:
+              second: 30
+              policy: local
+              limit_by: consumer
+              fault_tolerant: true
+
+  - name: payment-service
+    url: http://host.docker.internal:8082
+    routes:
+      - name: payment-provider-callbacks
+        paths:
+          - /api/payments/payme/callback
+          - /api/payments/click/callback
+          - /api/payments/uzcard/callback
+        strip_path: false
+        methods:
+          - POST
+        regex_priority: 100
+      - name: payment-api
+        paths:
+          - /api/payments
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              uri_param_names: []
+              header_names:
+                - authorization
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
+          - name: rate-limiting
+            config:
+              second: 30
+              policy: local
+              limit_by: consumer
+              fault_tolerant: true
+
+  - name: delivery-service
+    url: http://host.docker.internal:8085/delivery
+    routes:
+      - name: delivery-api
+        paths:
+          - /api/delivery
+        strip_path: true
+
+  - name: search-service
+    url: http://host.docker.internal:8086
+    routes:
+      - name: search-api
+        paths:
+          - /api/search
+        strip_path: false
+
+  - name: notification-service
+    url: http://host.docker.internal:8087
+    routes:
+      - name: notification-rest
+        paths:
+          - /api/notifications
+        strip_path: false
+        plugins:
+          - name: jwt
+            config:
+              uri_param_names: []
+              header_names:
+                - authorization
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
+          - name: rate-limiting
+            config:
+              second: 30
+              policy: local
+              limit_by: consumer
+              fault_tolerant: true
+      - name: notification-ws
+        paths:
+          - /ws/notifications
+        strip_path: false
+      - name: notification-socket-io
+        paths:
+          - /socket.io
+        strip_path: false
+
+  - name: media-service
+    url: http://host.docker.internal:8088/media
+    routes:
+      - name: media-mutations
+        paths:
+          - /api/media
+        strip_path: true
+        methods:
+          - POST
+          - DELETE
+          - PUT
+          - PATCH
+        plugins:
+          - name: jwt
+            config:
+              uri_param_names: []
+              header_names:
+                - authorization
+              claims_to_verify:
+                - exp
+              key_claim_name: iss
+          - name: rate-limiting
+            config:
+              second: 30
+              policy: local
+              limit_by: consumer
+              fault_tolerant: true
+      - name: media-read
+        paths:
+          - /api/media
+        strip_path: true
+        methods:
+          - GET
+          - HEAD
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - http://localhost:3000
+        - http://localhost:3001
+        - http://127.0.0.1:3000
+        - http://127.0.0.1:3001
+      methods:
+        - GET
+        - HEAD
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Accept
+        - Authorization
+        - Content-Type
+        - X-Request-Id
+      exposed_headers:
+        - X-Request-Id
+      credentials: true
+      max_age: 3600
+
+  - name: correlation-id
+    config:
+      header_name: X-Request-Id
+      generator: uuid
+      echo_downstream: true
+
+  - name: rate-limiting
+    config:
+      second: 100
+      policy: local
+      limit_by: ip
+      fault_tolerant: true

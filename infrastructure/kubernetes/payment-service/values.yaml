@@ -1,0 +1,74 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/nasibashop/payment-service
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  fsGroup: 10001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+service:
+  type: ClusterIP
+  httpPort: 8082
+
+env:
+  port: "8082"
+  nodeEnv: production
+  paymentAutoComplete: "false"
+  redisHost: redis.infrastructure.svc.cluster.local
+  redisPort: "6379"
+  kafkaBrokers: kafka.infrastructure.svc.cluster.local:9092
+
+secrets:
+  existingSecret: payment-service-secrets
+  databaseUrlKey: DATABASE_URL
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "500m"
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+probes:
+  liveness:
+    path: /health/live
+    initialDelaySeconds: 30
+    periodSeconds: 20
+  readiness:
+    path: /health/ready
+    initialDelaySeconds: 15
+    periodSeconds: 10
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,87 @@
+replicaCount: 2
+
+image:
+  repository: kong
+  pullPolicy: IfNotPresent
+  tag: "3.7"
+
+nameOverride: ""
+fullnameOverride: ""
+
+# HTTP upstreams (same namespace by default). Override for host-gateway / mesh.
+upstreams:
+  user:
+    host: user-service
+    port: 8080
+  product:
+    host: product-service
+    port: 8083
+  order:
+    host: order-service
+    port: 8081
+  payment:
+    host: payment-service
+    port: 8082
+  delivery:
+    host: delivery-service
+    port: 8085
+  search:
+    host: search-service
+    port: 8086
+  notification:
+    host: notification-service
+    port: 8087
+  media:
+    host: media-service
+    port: 8088
+
+jwt:
+  consumerUsername: nasibashop-dev
+  jwtKey: nasibashop-user-service
+  rsaPublicKey: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmdLP8Rl9nHncgrobSjs2
+    xu4/sHRPNBzbP2vvc6NLY8z6aF6Y0pc62hsvyo++aFiUVDlO6gRxEnDRIG4GeoiU
+    DfMyH36DfGtx+nMpSydL17VmircROrqCuC99fkeANsKFsUtkdmqGLpCm4Y4xKN46
+    DsCZG8b5T6UJ8CgfAUcKU65V+F5B6Vuvtg7AluZNbPcwTC2hPtnUUQdmnGuG1paj
+    e4NRlVUGr8DoujxaCn/B9pDxEk5Nf+NySH9NbSmaWdYYF9KSVfLAQ6BwVdKd6PYv
+    uIk3Zk5W25vctFHEm8ivvWdKJfwbS1Cqv0av+q7Hax+URlU4vHgPnD1qUBG8qSCL
+    YwIDAQAB
+    -----END PUBLIC KEY-----
+
+cors:
+  origins:
+    - http://localhost:3000
+    - http://localhost:3001
+    - http://127.0.0.1:3000
+    - http://127.0.0.1:3001
+
+service:
+  type: ClusterIP
+  proxyPort: 8000
+
+admin:
+  enabled: false
+  port: 8001
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+probes:
+  liveness:
+    initialDelaySeconds: 30
+    periodSeconds: 20
+  readiness:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+podAnnotations: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

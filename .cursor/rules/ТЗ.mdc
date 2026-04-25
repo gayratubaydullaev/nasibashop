@@ -1,0 +1,478 @@
+---
+description: Полное ТЗ проекта NasibaShop
+alwaysApply: false
+enabled: true
+---
+
+Ты — Principal Software Architect с 15-летним опытом построения high-load e-commerce платформ (Wildberries, Ozon, Amazon). Твоя задача — спроектировать и реализовать ПОЛНОСТЬЮ распределённую микросервисную архитектуру для маркетплейса в Узбекистане.
+
+────────────────────────────────────
+1. ОБЩАЯ АРХИТЕКТУРА СИСТЕМЫ
+────────────────────────────────────
+
+Платформа состоит из 7 независимых микросервисов, API Gateway, Frontend (Storefront + Admin) и вспомогательной инфраструктуры. Каждый микросервис имеет свою базу данных (Database per Service паттерн), свой репозиторий в монорепо и деплоится независимо.
+
+КОММУНИКАЦИЯ МЕЖДУ СЕРВИСАМИ:
+• Синхронная: gRPC (высокопроизводительные вызовы) + REST (для внешнего API)
+• Асинхронная: Apache Kafka (события: заказ создан, оплата получена, товар отгружен)
+• Service Discovery: Consul или Kubernetes DNS
+• API Gateway: Kong или KrakenD (rate limiting, аутентификация, роутинг)
+
+ИНФРАСТРУКТУРА:
+• Оркестрация: Kubernetes (k8s) — строго
+• CI/CD: GitLab CI или GitHub Actions + ArgoCD (GitOps)
+• Мониторинг: Prometheus + Grafana (метрики), Jaeger (трейсинг), ELK Stack (логи)
+• Service Mesh: Istio (балансировка, retry, circuit breaker, mTLS)
+• Хранилище секретов: HashiCorp Vault
+
+СТРУКТУРА МОНОРЕПОЗИТОРИЯ:
+
+nasiba shop/
+├── services/
+│ ├── api-gateway/ # Kong конфигурация + кастомные плагины
+│ ├── user-service/ # Go (Golang)
+│ ├── product-service/ # Go (Golang)
+│ ├── order-service/ # Java (Spring Boot) или Kotlin
+│ ├── payment-service/ # Node.js (Nest.js) — для гибкой интеграции с Payme/Click
+│ ├── delivery-service/ # Go (Golang)
+│ ├── search-service/ # Rust (Actix-web) — максимальная производительность
+│ ├── notification-service/ # Node.js (Nest.js) — WebSockets + Firebase
+│ └── media-service/ # Go (Golang) — обработка изображений
+├── frontends/
+│ ├── storefront/ # Next.js 15 (TypeScript) — Витрина для покупателей
+│ └── admin-panel/ # Next.js 15 (TypeScript) — Админка и панель магазина
+├── packages/
+│ ├── shared-proto/ # Protobuf-контракты для gRPC (единый источник истины)
+│ ├── shared-types/ # TypeScript типы для фронтендов
+│ └── shared-config/ # ESLint, Prettier, TSconfig
+├── infrastructure/
+│ ├── terraform/ # Infrastructure as Code (AWS/GCP/Azure)
+│ ├── kubernetes/ # Helm charts для каждого сервиса
+│ │ ├── user-service/
+│ │ ├── product-service/
+│ │ └── ...
+│ └── docker/ # Dockerfile для каждого сервиса
+├── docker-compose.yml # Локальная разработка (ограниченная версия)
+└── README.md
+
+
+
+────────────────────────────────────
+2. МИКРОСЕРВИСЫ (ДЕТАЛЬНО)
+────────────────────────────────────
+
+Каждый микросервис должен быть описан по схеме:
+• Ответственность
+• Технологический стек
+• База данных
+• API (gRPC методы + REST эндпоинты)
+• Kafka события (публикует и подписывается)
+
+────────────────────────────────────
+СЕРВИС 1: API Gateway
+────────────────────────────────────
+Технология: Kong Gateway (на базе OpenResty/Lua)
+Ответственность:
+• Единая точка входа для всех фронтендов
+• Аутентификация (JWT validation) через плагин
+• Rate limiting: 100 запросов/сек на пользователя
+• Роутинг запросов к нужным микросервисам
+• CORS для storefront и admin-panel
+• Логирование всех входящих запросов
+
+Конфигурация роутов:
+• /api/auth/*       → user-service
+• /api/products/*   → product-service
+• /api/orders/*     → order-service
+• /api/payments/*   → payment-service
+• /api/delivery/*   → delivery-service
+• /api/search/*     → search-service
+• /api/notifications/* → notification-service (WebSocket upgrade)
+• /api/media/*      → media-service
+
+────────────────────────────────────
+СЕРВИС 2: User Service (Пользователи и Аутентификация)
+────────────────────────────────────
+Технология: Go 1.22 (Fiber или Chi router)
+База данных: PostgreSQL 16
+Кэш: Redis (сессии, refresh-токены)
+
+Ответственность:
+• Регистрация/вход по телефону (SMS через Eskiz.uz или Play Mobile)
+• Регистрация/вход по email + пароль
+• JWT токены (access 15 min, refresh 7 days)
+• RBAC: роли SUPER_ADMIN, STORE_MANAGER, CUSTOMER
+• Профиль пользователя (имя, телефон, email, аватар)
+• Адреса доставки (CRUD)
+• История входов и безопасность
+
+gRPC методы:
+• CreateUser(phone, email, password) → User
+• Authenticate(phone/code) → Tokens
+• ValidateToken(token) → UserClaims
+• GetUser(id) → User
+• UpdateProfile(id, data) → User
+• AddAddress(userId, address) → Address
+
+Kafka события (публикует):
+• user.created {userId, phone, email, timestamp}
+• user.address.added {userId, addressId}
+
+База данных (отдельная):
+• Таблицы: users, roles, addresses, refresh_tokens, sms_codes
+
+────────────────────────────────────
+СЕРВИС 3: Product Service (Товары и Каталог)
+────────────────────────────────────
+Технология: Go 1.22 (Fiber)
+База данных: PostgreSQL 16
+
+Ответственность:
+• CRUD товаров (название на узбекском, описание, цена, скидка)
+• Управление категориями (дерево)
+• Варианты товаров (цвет, размер)
+• Остатки (складской учёт)
+• Привязка товара к магазину (StoreLocation)
+• Импорт/экспорт CSV
+
+gRPC методы:
+• CreateProduct(data) → Product
+• UpdateProduct(id, data) → Product
+• GetProduct(id) → ProductFull
+• ListProducts(filters, pagination) → ProductList
+• GetCategories() → CategoryTree
+• UpdateStock(productId, storeId, quantity) → Stock
+
+Kafka события:
+• Публикует: product.created, product.updated, product.stock.changed
+• Подписывается на: order.created (резервирование остатков), order.cancelled (возврат остатков)
+
+База данных:
+• Таблицы: products, product_variants, categories, stocks, store_locations, product_images
+
+────────────────────────────────────
+СЕРВИС 4: Order Service (Заказы)
+────────────────────────────────────
+Технология: Java 21 + Spring Boot 3
+База данных: PostgreSQL 16
+Сага: Orchestration-based Saga (управляет жизненным циклом заказа)
+
+Ответственность:
+• Создание заказа (оркестрация: проверка остатков → резервирование → создание платежа)
+• Saga-транзакции для обеспечения консистентности между сервисами
+• Статусы заказа: NEW → CONFIRMED → PREPARING → SHIPPED/READY_FOR_PICKUP → DELIVERED/PICKED_UP → CANCELLED
+• История изменений статусов
+• Отмена заказа с возвратом остатков и денег
+
+REST API:
+• POST /api/orders — создать заказ
+• GET /api/orders/{id} — получить заказ
+• GET /api/orders/my — мои заказы (покупатель)
+• GET /api/orders/store/{storeId} — заказы магазина
+• PATCH /api/orders/{id}/status — изменить статус (админ/менеджер)
+• POST /api/orders/{id}/cancel — отменить заказ
+
+Kafka события:
+• Публикует:
+  - order.created {orderId, userId, items, totalAmount}
+  - order.status.changed {orderId, oldStatus, newStatus}
+  - order.cancelled {orderId, reason}
+• Подписывается на:
+  - payment.completed (подтверждение оплаты)
+  - stock.reserved (подтверждение резерва)
+
+База данных:
+• Таблицы: orders, order_items, order_status_history, saga_transactions
+
+────────────────────────────────────
+СЕРВИС 5: Payment Service (Платежи)
+────────────────────────────────────
+Технология: Node.js + Nest.js (гибкость для интеграций)
+База данных: PostgreSQL 16
+Очередь: BullMQ (Redis) — повторные попытки платежей
+
+Ответственность:
+• Приём запросов на оплату от Order Service
+• Интеграция с платёжными шлюзами Узбекистана:
+  - Payme.uz (Merchant API v2)
+  - Click.uz (Merchant API)
+  - Uzcard.uz (редирект)
+• Наличные/терминал при получении (проверка при доставке)
+• Чек-лист статусов: PENDING → PROCESSING → COMPLETED / FAILED / REFUNDED
+• Возврат денег (refund) при отмене заказа
+• Логирование всех транзакций (аудит)
+
+Структура провайдеров (паттерн Strategy):
+```typescript
+interface PaymentProvider {
+  createPayment(order: Order): Promise<PaymentResult>;
+  checkStatus(transactionId: string): Promise<PaymentStatus>;
+  refund(transactionId: string, amount: number): Promise<RefundResult>;
+}
+
+class PaymeProvider implements PaymentProvider { ... }
+class ClickProvider implements PaymentProvider { ... }
+class UzcardProvider implements PaymentProvider { ... }
+class CashOnDeliveryProvider implements PaymentProvider { ... }
+
+
+REST API:
+• POST /api/payments/create — создать платёж
+• GET /api/payments/{id}/status — проверить статус
+• POST /api/payments/{id}/refund — возврат
+• POST /api/payments/payme/callback — webhook от Payme.uz
+• POST /api/payments/click/callback — webhook от Click.uz
+
+Kafka события:
+• Публикует: payment.completed, payment.failed, payment.refunded
+• Подписывается на: order.created (создать платёж), order.cancelled (возврат)
+
+База данных:
+• Таблицы: payments, transactions, refunds, payment_logs
+
+────────────────────────────────────
+СЕРВИС 6: Delivery Service (Доставка и Самовывоз)
+────────────────────────────────────
+Технология: Go 1.22 (Fiber)
+База данных: PostgreSQL 16 + PostGIS (гео-запросы)
+
+Ответственность:
+• Управление офлайн-магазинами (адреса, координаты, время работы)
+• Расчёт стоимости доставки (по зонам или расстоянию)
+• Поиск ближайшего магазина для самовывоза (гео-запрос)
+• Отслеживание курьера (GPS — можно заглушку)
+• Зоны доставки (какой магазин в какую зону доставляет)
+
+gRPC методы:
+• GetStoreLocations() → StoreLocation[]
+• GetNearestStore(lat, lng) → StoreLocation
+• CalculateDelivery(address, storeId) → DeliveryCost
+• CreateDelivery(orderId, address) → Delivery
+• UpdateDeliveryStatus(deliveryId, status) → Delivery
+• TrackDelivery(deliveryId) → DeliveryTracking
+
+Kafka события:
+• Публикует: delivery.created, delivery.status.changed
+• Подписывается на: order.confirmed (создать доставку)
+
+База данных:
+• Таблицы: store_locations, delivery_zones, deliveries, delivery_tracking
+
+────────────────────────────────────
+СЕРВИС 7: Search Service (Поиск)
+────────────────────────────────────
+Технология: Rust (Actix-web) + Meilisearch
+База данных: Meilisearch (встроенный движок)
+
+Ответственность:
+• Полнотекстовый поиск по товарам (узбекский язык)
+• Исправление опечаток (fuzzy search)
+• Фильтры: цена, категория, бренд, наличие, магазин
+• Сортировка: релевантность, цена, новизна, популярность
+• Мгновенные подсказки (autocomplete)
+• Синонимы (узбекские: "telefon" = "smartfon" = "мобильный")
+• Индексация: при изменении товара в Product Service
+
+REST API:
+• GET /api/search?q=telefon&category=electronics&minPrice=1000000&maxPrice=5000000
+• GET /api/search/suggest?q=telef (подсказки)
+• POST /api/search/reindex — полная переиндексация (админ)
+
+Kafka события:
+• Подписывается на:
+
+product.created → добавить в индекс
+
+product.updated → обновить в индексе
+
+product.deleted → удалить из индекса
+
+────────────────────────────────────
+СЕРВИС 8: Notification Service (Уведомления)
+────────────────────────────────────
+Технология: Node.js + Nest.js
+База данных: MongoDB (хранение шаблонов и истории)
+WebSocket: Socket.io (real-time уведомления)
+Push: Firebase Cloud Messaging
+
+Ответственность:
+• Push-уведомления в браузер и мобильные
+• WebSocket уведомления в реальном времени (новый заказ у админа)
+• Email уведомления (подтверждение заказа, статус)
+• SMS уведомления (код подтверждения, статус заказа)
+
+REST API + WebSocket:
+• WS /ws/notifications — подключение клиента
+• GET /api/notifications/history — история уведомлений
+• POST /api/notifications/send — отправить (внутренний)
+
+Kafka события:
+• Подписывается на ВСЕ ключевые события и преобразует в уведомления:
+
+order.created → "Заказ #12345 создан"
+
+order.status.changed → "Статус заказа изменён на Доставка"
+
+payment.completed → "Оплата получена"
+
+────────────────────────────────────
+СЕРВИС 9: Media Service (Изображения и Файлы)
+────────────────────────────────────
+Технология: Go 1.22
+Хранилище: Cloudflare R2 (или S3-совместимое)
+Обработка: libvips (быстрее Sharp/ImageMagick)
+
+Ответственность:
+• Загрузка изображений товаров
+• Ресайз на лету: ?width=400&height=400&format=webp
+• Генерация placeholder (blurhash)
+• Оптимизация (WebP/AVIF)
+• Водяные знаки (опционально)
+
+REST API:
+• POST /api/media/upload — загрузка файла
+• GET /api/media/{id} — получить файл (с параметрами ресайза)
+• DELETE /api/media/{id} — удалить
+
+Kafka события:
+• Публикует: media.uploaded, media.processed
+
+────────────────────────────────────
+3. FRONTEND: STOREFRONT (Витрина для покупателей)
+────────────────────────────────────
+
+Технология: Next.js 15 + TypeScript
+Стили: Tailwind CSS v4 + shadcn/ui
+Стейт: Zustand + TanStack Query v5
+Анимации: Framer Motion
+Общение с бэком: Через API Gateway (REST/WebSocket) + Protobuf через gRPC-Web
+
+Язык интерфейса: Узбекский (латиница). Цены: UZS (1 250 000 so'm)
+
+СТРАНИЦЫ:
+
+/ — Главная (карусель, поиск Meilisearch, категории, хиты, скидки)
+
+/catalog/[slug] — Каталог с фильтрами
+
+/product/[id] — Карточка товара
+
+/cart — Корзина
+
+/checkout — Оформление (табы: Yetkazib berish / O'z olib ketish, выбор Payme/Click/Uzcard/Наличные)
+
+/profile — ЛК (заказы, адреса, избранное)
+
+/profile/orders/[id] — Детали заказа
+
+ДИЗАЙН: Точная стилистика Uzum Market / Wildberries
+• Фиолетовый акцент (#7000FF)
+• Карточки товаров с тенью, скругления 16px
+• Mobile First, бесконечная лента
+• Скелетоны при загрузке
+• Анимации появления карточек
+
+────────────────────────────────────
+4. FRONTEND: ADMIN PANEL (Админка и панель магазина)
+────────────────────────────────────
+
+Технология: Next.js 15 + TypeScript
+Стили: Tailwind CSS v4 + shadcn/ui
+Графики: Recharts
+
+ПАНЕЛИ (переключение по роли):
+
+SUPER_ADMIN:
+• /admin — Дашборд (графики продаж, воронка, топ товаров)
+• /admin/orders — Все заказы (таблица, фильтры, смена статуса)
+• /admin/products — Все товары
+• /admin/stores — Управление магазинами (карта)
+• /admin/users — Пользователи и роли
+
+STORE_MANAGER:
+• /store — Дашборд своего магазина
+• /store/products — CRUD товаров
+• /store/orders — Заказы только своего магазина
+
+────────────────────────────────────
+5. KAFKA ТОПИКИ (ПОЛНАЯ СХЕМА)
+────────────────────────────────────
+
+# Пользователи
+user.created
+user.updated
+user.address.added
+
+# Товары
+product.created
+product.updated
+product.deleted
+product.stock.changed
+stock.reserved       # Order → Product (резерв)
+stock.released       # Order → Product (отмена)
+
+# Заказы
+order.created
+order.confirmed
+order.status.changed
+order.cancelled
+
+# Платежи
+payment.created
+payment.completed
+payment.failed
+payment.refunded
+
+# Доставка
+delivery.created
+delivery.status.changed
+
+# Уведомления
+notification.send    # Любой сервис → Notification Service
+
+────────────────────────────────────
+6. БЕЗОПАСНОСТЬ
+────────────────────────────────────
+
+• mTLS между всеми сервисами (через Istio)
+• JWT с подписью RS256
+• API Gateway проверяет JWT на каждом запросе
+• Каждый микросервис ПОВТОРНО валидирует JWT
+• Rate limiting на Gateway (100 req/sec на IP, 30 req/sec на пользователя)
+• Circuit breaker (Istio) — если сервис упал, запросы не идут
+• Все секреты в HashiCorp Vault
+• Логирование всех запросов с traceId
+
+────────────────────────────────────
+7. ЧТО Я ХОЧУ ПОЛУЧИТЬ В ОТВЕТЕ
+────────────────────────────────────
+
+Выдай ПОЛНУЮ кодовую базу в следующем порядке:
+
+Часть 1: Инфраструктура
+
+docker-compose.yml (Kafka, PostgreSQL, Redis, Meilisearch, Consul — для локальной разработки)
+
+Protobuf-контракты: user.proto, product.proto, order.proto
+
+Helm chart для одного сервиса (как шаблон для остальных)
+
+Terraform-скрипт для поднятия Kubernetes кластера
+
+Часть 2: Микросервисы (для каждого — полная структура папок и ключевые файлы)
+5. User Service (Go) — основной handler, модель, репозиторий
+6. Product Service (Go) — CRUD товаров
+7. Order Service (Java Spring Boot) — создание заказа с Saga
+8. Payment Service (Nest.js) — интеграция Payme + Click + Uzcard
+9. Delivery Service (Go) — поиск ближайшего магазина
+10. Search Service (Rust) — поиск через Meilisearch
+11. Notification Service (Nest.js) — WebSocket уведомления
+
+Часть 3: Frontend
+12. Storefront (Next.js 15) — все 7 страниц
+13. Admin Panel (Next.js 15) — дашборды
+
+Часть 4: Документация
+14. README.md с инструкцией по запуску всего
+15. API-документация (OpenAPI/Swagger)
+

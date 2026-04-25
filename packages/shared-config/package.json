@@ -1,0 +1,10 @@
+{
+  "name": "@nasibashop/shared-config",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Общий Prettier и базовый tsconfig для фронтендов.",
+  "files": ["tsconfig.base.json", "prettier.config.cjs"],
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}

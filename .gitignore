@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Next.js
+.next/
+out/
+**/.next/
+
+# Env and secrets (никогда в git)
+.env
+.env.*
+!.env.example
+secrets/
+
+# JWT dev: приватный не в git (генерация: node scripts/generate-dev-jwt-keys.cjs)
+services/api-gateway/declarative/dev-not-for-prod/jwt_dev_private.pem
+
+# Build / IDE
+dist/
+build/
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Go / Rust / Java
+**/target/
+**/.gradle/
+**/build/
+!**/gradle/wrapper/**
+*.class
+*.jar
+!**/gradle/wrapper/*.jar
+
+# OS
+*.swp
+*~

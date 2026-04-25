@@ -1,0 +1,6 @@
+apiVersion: v2
+name: api-gateway
+description: Kong Gateway 3.x (DB-less) with declarative routes for NasibaShop.
+type: application
+version: 0.1.0
+appVersion: "3.7"

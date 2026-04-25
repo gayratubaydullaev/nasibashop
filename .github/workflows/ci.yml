@@ -1,0 +1,178 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shared-types:
+    name: shared-types
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/shared-types
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: packages/shared-types/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+
+  storefront:
+    name: storefront
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontends/storefront
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontends/storefront/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  admin-panel:
+    name: admin-panel
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontends/admin-panel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontends/admin-panel/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  payment-service:
+    name: payment-service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/payment-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: services/payment-service/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  notification-service:
+    name: notification-service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/notification-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: services/notification-service/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  go-services:
+    name: go (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [user-service, product-service, delivery-service, media-service]
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: services/${{ matrix.service }}/go.mod
+          cache-dependency-path: services/${{ matrix.service }}/go.sum
+      - run: go mod download
+      - run: go build -o /tmp/out ./cmd/server
+
+  search-service:
+    name: search-service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/search-service
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo check
+
+  order-service:
+    name: order-service
+    runs-on: ubuntu-latest
+    container:
+      image: gradle:8.11-jdk21
+    defaults:
+      run:
+        working-directory: services/order-service
+    steps:
+      - uses: actions/checkout@v4
+      - run: gradle build --no-daemon -x test
+
+  kong-declarative:
+    name: kong-declarative
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse declarative kong.yml
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}/services/api-gateway/declarative/kong.yml:/kong/kong.yml:ro" \
+            kong:3.7 kong config parse /kong/kong.yml
+
+  helm-charts:
+    name: helm (${{ matrix.chart }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        chart:
+          - user-service
+          - product-service
+          - order-service
+          - payment-service
+          - delivery-service
+          - search-service
+          - notification-service
+          - media-service
+          - api-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.14.4
+      - name: Lint and template
+        run: |
+          set -euo pipefail
+          chart="infrastructure/kubernetes/${{ matrix.chart }}"
+          helm lint "$chart"
+          helm template "ci-${{ matrix.chart }}" "$chart" >/tmp/rendered.yaml
+          test -s /tmp/rendered.yaml

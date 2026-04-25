@@ -1,0 +1,18 @@
+[package]
+name = "search-service"
+version = "0.1.0"
+edition = "2021"
+description = "NasibaShop full-text search (Meilisearch) + Kafka indexing"
+
+[dependencies]
+actix-web = "4.9"
+tokio = { version = "1.41", features = ["rt-multi-thread", "macros", "signal"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+rdkafka = { version = "0.36", features = ["tokio", "cmake-build"], default-features = false }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+futures-util = "0.3"
+anyhow = "1"
+log = "0.4"
+env_logger = "0.11"
