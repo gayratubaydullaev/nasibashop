@@ -6,7 +6,7 @@
 
 **Node.js 20+** в пути (для скрипта JWT). **Docker** с Compose.
 
-1. Скопируйте [`.env.example`](.env.example) в **`.env`**, при занятых портах поправьте `NASIBASHOP_*` (см. комментарии).
+1. Скопируйте [`.env.example`](.env.example) в **`.env`**. Чтобы **сразу** все внешние порты перенести с «классических» 5432/8000/…, добавьте готовый профиль: `cat [environment/nasibashop-nested-ports.env](environment/nasibashop-nested-ports.env) >> .env` (Kong с хоста: **18000**, admin **18001**; см. комментарии в файле). Точечные правки — вручную через `NASIBASHOP_*` в `.env` ([`.env.example`](.env.example)).
 2. Сгенерируйте dev JWT и положите ключи рядом с Kong: из корня репозитория `npm run jwt:dev` (см. [dev-not-for-prod](services/api-gateway/declarative/dev-not-for-prod/README.md)).
 3. Поднимите **всю инфраструктуру и микросервисы** одной командой:
 
@@ -18,7 +18,7 @@
 
    Остановить весь stack: `npm run dev:stack:down` · логи: `npm run dev:stack:logs` · список контейнеров: `npm run dev:stack:ps` · **только** Postgres, Redis, Kong… без микросервисов: `npm run docker:up` (эквивалент `docker compose up -d` по [`docker-compose.yml`](docker-compose.yml)).
 
-4. API: **`http://localhost:8000`** (Kong). Админка/витрина отдельно: `cd frontends/storefront` → `npm install` → `npm run dev` с `NEXT_PUBLIC_API_URL=http://localhost:8000` (см. раздел 5).
+4. API: Kong прокси по умолчанию **`http://localhost:8000`**, с профилем [nasibashop-nested-ports](environment/nasibashop-nested-ports.env) — **`http://localhost:18000`**. Админка/витрина отдельно: `cd frontends/storefront` → `npm install` → `npm run dev` с `NEXT_PUBLIC_API_URL`, совпадающим с Kong (см. раздел 5 и [frontends/storefront/.env.example](frontends/storefront/.env.example)).
 
 **Вариант без сервисов в Docker:** поднять только зависимости — `docker compose up -d`, микросервисы вручную с хоста, Kong смотрит на `host.docker.internal` (см. [`kong.yml`](services/api-gateway/declarative/kong.yml)).
 
@@ -40,7 +40,7 @@ docker compose up -d
 
 **VPS / занятые порты:** если на сервере уже слушают `6379`, `5432`, `8000` и т.д., скопируйте [`.env.example`](.env.example) в **`.env`**, задайте `NASIBASHOP_REDIS_PORT`, `NASIBASHOP_POSTGRES_PORT`, … (см. комментарии в файле). Микросервисы на хосте тогда укажите на те же порты (`REDIS_ADDR`, `DATABASE_URL`, `NEXT_PUBLIC_API_URL` для Kong).
 
-Поднимаются: **PostgreSQL 16**, **Redis**, **Kafka** (KRaft, внешний порт `9094`), **Meilisearch**, **MongoDB 7**, **Consul**, **Kong** (прокси **`http://localhost:8000`**, Admin **`http://localhost:8001`**).
+Поднимаются: **PostgreSQL 16**, **Redis**, **Kafka** (KRaft, внешний порт `9094` с хоста, при [nested ports](environment/nasibashop-nested-ports.env) — `19094`), **Meilisearch**, **MongoDB 7**, **Consul**, **Kong** (прокси `8000` / `18000`, admin `8001` / `18001` в зависимости от `.env`, см. [`nasibashop-nested-ports.env`](environment/nasibashop-nested-ports.env)).
 
 Базы для сервисов создаются скриптом `infrastructure/docker/postgres/init-multiple-databases.sh` при первом старте Postgres.
 
@@ -60,7 +60,7 @@ psql "postgres://nasiba:nasiba_dev_password@localhost:5432/user_service?sslmode=
 
 ## 3. Порты сервисов (локально, за Kong)
 
-| Сервис | Порт по умолчанию | Префикс через Kong (`:8000`) |
+| Сервис | Порт по умолчанию | Префикс через Kong (хост: `8000` или `18000` — см. `.env` / [nested-ports](environment/nasibashop-nested-ports.env)) |
 |--------|-------------------|-------------------------------|
 | user-service | 8080 | `/api/auth`, `/api/users` |
 | product-service | 8083 | `/api/products`, `/api/categories` |
@@ -85,11 +85,27 @@ Upstream в режиме разработки указывает на `host.dock
 | Приложение | Каталог | Порт dev (пример) |
 |------------|---------|-------------------|
 | Витрина | `frontends/storefront` | 3000 |
-| Админка | `frontends/admin-panel` | 3000 или `3001` |
+| Админка | `frontends/admin-panel` | 3001 |
+
+**Оба сразу** (из **корня** репозитория, после `npm install` в корне — тянет `concurrently`):
+
+```bash
+# витрина :3000, админка :3001, Kong в .env.local — обычно http://localhost:8000
+npm run dev:frontends
+```
+
+Прод (после `npm run build:frontends`):
+
+```bash
+npm run build:frontends
+npm run start:frontends
+```
+
+По отдельности, как раньше:
 
 ```bash
 cd frontends/storefront
-cp .env.example .env.local   # NEXT_PUBLIC_API_URL=http://localhost:8000
+cp .env.example .env.local   # NEXT_PUBLIC_API_URL — см. комментарии в .env.example
 npm install
 npm run dev
 ```

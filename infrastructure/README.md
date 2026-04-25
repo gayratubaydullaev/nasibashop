@@ -15,7 +15,7 @@ The root `docker-compose.yml` starts the minimum local dependencies:
 - Meilisearch
 - MongoDB 7 (for `notification-service`)
 - Consul
-- Kong 3.7 (`api-gateway`, proxy `localhost:8000`)
+- Kong 3.7 (`api-gateway`, proxy `localhost:8000`, при [nested-ports «внешние»](../environment/nasibashop-nested-ports.env) — `18000`)
 
 Frontends (alohida terminalda): `frontends/storefront` va `frontends/admin-panel` — `NEXT_PUBLIC_API_URL=http://localhost:8000`, `npm run dev` (admin uchun port ziddiyati bo‘lsa `-p 3001`).
 
@@ -23,7 +23,7 @@ Frontends (alohida terminalda): `frontends/storefront` va `frontends/admin-panel
 docker compose up -d
 ```
 
-Если Docker ругается на **«address already in use»** (часто **6379** или **5432**), в корне репозитория создайте **`.env`** по образцу [`.env.example`](../.env.example) и задайте `NASIBASHOP_REDIS_PORT`, `NASIBASHOP_POSTGRES_PORT` и при необходимости порты Kong / Kafka / остальное.
+Если Docker ругается на **«address already in use»** (часто **6379** или **5432**), в корне: **`cat environment/nasibashop-nested-ports.env >> .env`** или точечно в [`.env.example`](../.env.example) / вручную `NASIBASHOP_*` (Kong, Kafka, …).
 
 PostgreSQL creates one database per service on first startup through
 `infrastructure/docker/postgres/init-multiple-databases.sh`.

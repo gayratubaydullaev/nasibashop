@@ -207,6 +207,26 @@ services:
           - GET
           - HEAD
 
+  - name: gateway-root
+    url: http://127.0.0.1:9
+    read_timeout: 1
+    write_timeout: 1
+    connect_timeout: 1
+    routes:
+      - name: gateway-root-exact
+        paths:
+          - ~/^/$
+        methods:
+          - GET
+          - HEAD
+        strip_path: false
+        plugins:
+          - name: request-termination
+            config:
+              status_code: 200
+              content_type: application/json; charset=utf-8
+              body: '{"name":"nasibashop","gateway":true,"paths":["/api/auth","/api/users","/api/products","/api/categories","/api/orders","/api/payments","/api/delivery","/api/search","/api/notifications","/api/media","/ws/notifications","/socket.io"]}'
+
 plugins:
   - name: cors
     config:
@@ -215,6 +235,9 @@ plugins:
         - http://localhost:3001
         - http://127.0.0.1:3000
         - http://127.0.0.1:3001
+        - http://host.docker.internal:3000
+        - http://host.docker.internal:3001
+        - https://shop.blungur.store
       methods:
         - GET
         - HEAD

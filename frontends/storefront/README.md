@@ -16,6 +16,10 @@ Xaridorlar uchun vitrina: **Uzum / Wildberries** uslubida binafsha aksent (`#700
 
 ## Ishga tushirish
 
+Bitta buyruq — vitrina + admin: monoreponing ildizida `npm run dev:frontends` (vitrina `:3000`, admin `:3001`).
+
+Alohida:
+
 ```bash
 cp .env.example .env.local
 npm install

@@ -9,7 +9,13 @@
     "dev:stack:logs": "node scripts/dev-stack.cjs logs -f",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "jwt:dev": "node scripts/generate-dev-jwt-keys.cjs"
+    "jwt:dev": "node scripts/generate-dev-jwt-keys.cjs",
+    "dev:frontends": "concurrently -k -n storefront,admin -c auto \"npm run dev --prefix frontends/storefront\" \"npm run dev --prefix frontends/admin-panel -- --port 3001\"",
+    "start:frontends": "concurrently -k -n storefront,admin -c auto \"npm run start --prefix frontends/storefront -- -p 3000\" \"npm run start --prefix frontends/admin-panel -- -p 3001\"",
+    "build:frontends": "npm run build --prefix frontends/storefront && npm run build --prefix frontends/admin-panel"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
   },
   "engines": {
     "node": ">=20"
