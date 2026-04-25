@@ -23,6 +23,8 @@ Frontends (alohida terminalda): `frontends/storefront` va `frontends/admin-panel
 docker compose up -d
 ```
 
+Если Docker ругается на **«address already in use»** (часто **6379** или **5432**), в корне репозитория создайте **`.env`** по образцу [`.env.example`](../.env.example) и задайте `NASIBASHOP_REDIS_PORT`, `NASIBASHOP_POSTGRES_PORT` и при необходимости порты Kong / Kafka / остальное.
+
 PostgreSQL creates one database per service on first startup through
 `infrastructure/docker/postgres/init-multiple-databases.sh`.
 

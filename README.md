@@ -18,6 +18,8 @@
 docker compose up -d
 ```
 
+**VPS / занятые порты:** если на сервере уже слушают `6379`, `5432`, `8000` и т.д., скопируйте [`.env.example`](.env.example) в **`.env`**, задайте `NASIBASHOP_REDIS_PORT`, `NASIBASHOP_POSTGRES_PORT`, … (см. комментарии в файле). Микросервисы на хосте тогда укажите на те же порты (`REDIS_ADDR`, `DATABASE_URL`, `NEXT_PUBLIC_API_URL` для Kong).
+
 Поднимаются: **PostgreSQL 16**, **Redis**, **Kafka** (KRaft, внешний порт `9094`), **Meilisearch**, **MongoDB 7**, **Consul**, **Kong** (прокси **`http://localhost:8000`**, Admin **`http://localhost:8001`**).
 
 Базы для сервисов создаются скриптом `infrastructure/docker/postgres/init-multiple-databases.sh` при первом старте Postgres.
