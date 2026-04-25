@@ -31,7 +31,7 @@
 
 ## Сборка
 
-Требуется **Rust ≥ 1.88** (зависимости: Actix, transitive crates с `edition 2021`+), **CMake** (для `rdkafka` с фичей `cmake-build`).
+Требуется **Rust ≥ 1.88** (зависимости: Actix, transitive crates с `edition 2021`+), **CMake** (для `rdkafka` с фичей `cmake-build`). В **Ubuntu/Debian** при сборке `librdkafka` через `rdkafka-sys` нужен заголовок `curl` — пакет **`libcurl4-openssl-dev`** (и обычно `pkg-config`, `libssl-dev`, `libsasl2-dev`; см. CI).
 
 Рекомендуется коммитить **`Cargo.lock`**, чтобы Docker и CI собирали один и тот же набор версий: `cargo generate-lockfile` или `cargo build` локально, затем `git add Cargo.lock`.
 

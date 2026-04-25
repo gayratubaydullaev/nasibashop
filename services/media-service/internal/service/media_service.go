@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"image"
 	"image/jpeg"
 	"image/png"
 	"io"
@@ -13,12 +12,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/chai2010/webp"
 	"github.com/disintegration/imaging"
 	"github.com/nasibashop/nasibashop/services/media-service/internal/config"
 	"github.com/nasibashop/nasibashop/services/media-service/internal/kafka"
 	"github.com/nasibashop/nasibashop/services/media-service/internal/repository"
 	"github.com/nasibashop/nasibashop/services/media-service/internal/storage"
-	"golang.org/x/image/webp"
+	_ "golang.org/x/image/webp" // image.Decode / imaging: webp o‘qish
 )
 
 type MediaService struct {

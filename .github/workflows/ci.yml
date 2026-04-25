@@ -106,6 +106,11 @@ jobs:
         working-directory: services/${{ matrix.service }}
     steps:
       - uses: actions/checkout@v4
+      - name: libwebp (media-service, WebP encode / CGO)
+        if: matrix.service == 'media-service'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libwebp-dev
       - uses: actions/setup-go@v5
         with:
           go-version-file: services/${{ matrix.service }}/go.mod
@@ -125,7 +130,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            cmake g++ pkg-config libssl-dev libsasl2-dev
+            cmake g++ pkg-config libssl-dev libsasl2-dev libcurl4-openssl-dev
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "1.88"
@@ -153,7 +158,9 @@ jobs:
           set -euo pipefail
           for f in kong.yml kong.docker.yml; do
             echo "==> $f"
+            # Без KONG_DATABASE=off Kong пытается подключиться к PostgreSQL (по умолчанию).
             docker run --rm \
+              -e KONG_DATABASE=off \
               -v "${GITHUB_WORKSPACE}/services/api-gateway/declarative/${f}:/kong/kong.yml:ro" \
               kong:3.7 kong config parse /kong/kong.yml
           done

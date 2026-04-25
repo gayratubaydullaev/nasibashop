@@ -46,7 +46,8 @@ psql "postgres://nasiba:nasiba_dev_password@localhost:5432/media_service?sslmode
 docker build -f infrastructure/docker/media-service/Dockerfile -t nasibashop/media-service:dev .
 ```
 
-Локально:
+Локально: для выдачи **`format=webp`** нужен **libwebp** и **CGO** (пакет `github.com/chai2010/webp`).  
+Ubuntu/Debian: `sudo apt install -y build-essential libwebp-dev` · затем `CGO_ENABLED=1` (значение по умолчанию в Linux).
 
 ```bash
 cd services/media-service
