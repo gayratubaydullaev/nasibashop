@@ -1,14 +1,22 @@
 /**
- * Кросс-платформенный старт: полный бэкенд + инфраструктура.
- * Подставляет KONG в конфиг, чтобы дочерний compose смотрел на сервисы в сети.
+ * Docker Compose: инфраструктура + `docker-compose.services.yml`.
+ * Kong → `kong.docker.yml` (upstream по имени сервиса в сети).
+ *
+ *   node scripts/dev-stack.cjs                 →  up -d --build
+ *   node scripts/dev-stack.cjs down
+ *   node scripts/dev-stack.cjs ps
+ *   node scripts/dev-stack.cjs logs -f
  */
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 
 const root = path.join(__dirname, "..");
 const env = { ...process.env };
-// Относительный путь к корню репозитория — подстановка в docker-compose для volume
 env.KONG_DECLARATIVE_CONFIG_FILE = "./services/api-gateway/declarative/kong.docker.yml";
+
+const fromCli = process.argv.slice(2);
+const composeArgs =
+  fromCli.length > 0 ? fromCli : ["up", "-d", "--build"];
 
 const args = [
   "compose",
@@ -16,14 +24,15 @@ const args = [
   "docker-compose.yml",
   "-f",
   "docker-compose.services.yml",
-  "up",
-  "-d",
-  "--build",
-  ...process.argv.slice(2),
+  ...composeArgs,
 ];
 const r = spawn("docker", args, { stdio: "inherit", env, cwd: root, shell: false });
 r.on("exit", (code) => process.exit(code ?? 1));
 r.on("error", (err) => {
-  console.error(err);
+  if (err.code === "ENOENT") {
+    console.error("Docker not found. Install Docker and ensure it is in PATH.\n" + err.message);
+  } else {
+    console.error(err);
+  }
   process.exit(1);
 });

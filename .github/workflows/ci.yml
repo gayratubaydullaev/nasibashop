@@ -110,8 +110,8 @@ jobs:
         with:
           go-version-file: services/${{ matrix.service }}/go.mod
           cache-dependency-path: services/${{ matrix.service }}/go.sum
-      - run: go mod download
-      - run: go build -o /tmp/out ./cmd/server
+      - name: Tidy and build
+        run: go mod tidy && go build -o /tmp/out ./cmd/server
 
   search-service:
     name: search-service
@@ -121,7 +121,14 @@ jobs:
         working-directory: services/search-service
     steps:
       - uses: actions/checkout@v4
+      - name: System dependencies (librdkafka, cmake)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake g++ pkg-config libssl-dev libsasl2-dev
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.88"
       - run: cargo check
 
   order-service:
@@ -141,12 +148,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Parse declarative kong.yml
+      - name: Parse Kong declarative configs
         run: |
           set -euo pipefail
-          docker run --rm \
-            -v "${GITHUB_WORKSPACE}/services/api-gateway/declarative/kong.yml:/kong/kong.yml:ro" \
-            kong:3.7 kong config parse /kong/kong.yml
+          for f in kong.yml kong.docker.yml; do
+            echo "==> $f"
+            docker run --rm \
+              -v "${GITHUB_WORKSPACE}/services/api-gateway/declarative/${f}:/kong/kong.yml:ro" \
+              kong:3.7 kong config parse /kong/kong.yml
+          done
 
   helm-charts:
     name: helm (${{ matrix.chart }})

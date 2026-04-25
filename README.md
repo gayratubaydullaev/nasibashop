@@ -14,7 +14,9 @@
    npm run dev:stack
    ```
 
-   Скрипт [`scripts/dev-stack.cjs`](scripts/dev-stack.cjs) выставляет `KONG_DECLARATIVE_CONFIG_FILE` на [`kong.docker.yml`](services/api-gateway/declarative/kong.docker.yml) (маршруты на контейнеры) и запускает `docker compose -f docker-compose.yml -f docker-compose.services.yml up -d --build`. Первый билд **Rust / Java / Go** может занять несколько минут.
+   Скрипт [`scripts/dev-stack.cjs`](scripts/dev-stack.cjs) выставляет `KONG_DECLARATIVE_CONFIG_FILE` на [`kong.docker.yml`](services/api-gateway/declarative/kong.docker.yml) (маршруты на контейнеры) и запускает `docker compose -f docker-compose.yml -f docker-compose.services.yml up -d --build` (по умолчанию; можно передать другие подкоманды compose, см. комментарий в скрипте). Первый билд **Rust / Java / Go** может занять несколько минут.
+
+   Остановить весь stack: `npm run dev:stack:down` · логи: `npm run dev:stack:logs` · список контейнеров: `npm run dev:stack:ps` · **только** Postgres, Redis, Kong… без микросервисов: `npm run docker:up` (эквивалент `docker compose up -d` по [`docker-compose.yml`](docker-compose.yml)).
 
 4. API: **`http://localhost:8000`** (Kong). Админка/витрина отдельно: `cd frontends/storefront` → `npm install` → `npm run dev` с `NEXT_PUBLIC_API_URL=http://localhost:8000` (см. раздел 5).
 
@@ -26,7 +28,7 @@
 - **Node.js 20+** — `payment-service`, `notification-service`, фронты  
 - **Go 1.22+** — user, product, delivery, media  
 - **JDK 21+** — `order-service`  
-- **Rust** — `search-service`  
+- **Rust 1.88+** — `search-service` (и Docker-образ `rust:1.88-bookworm` в [Dockerfile](infrastructure/docker/search-service/Dockerfile))  
 
 ## 1. Инфраструктура (локально)
 
@@ -120,7 +122,7 @@ npm run dev -- --port 3001
 - `gradle build -x test` для **order-service** (образ `gradle:8.11-jdk21`);
 - `npm run typecheck` для **packages/shared-types**;
 - `helm lint` + `helm template` для чартов в **`infrastructure/kubernetes/*`**;
-- **`kong config parse`** для [`services/api-gateway/declarative/kong.yml`](services/api-gateway/declarative/kong.yml) (образ `kong:3.7`).
+- **`kong config parse`** для [`kong.yml`](services/api-gateway/declarative/kong.yml) и [`kong.docker.yml`](services/api-gateway/declarative/kong.docker.yml) (образ `kong:3.7`).  
 
 ## 9. Полезные ссылки
 

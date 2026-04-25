@@ -4,6 +4,11 @@
   "description": "Скрипты уровня монорепозитория (сервисы и фронты — в своих package.json).",
   "scripts": {
     "dev:stack": "node scripts/dev-stack.cjs",
+    "dev:stack:down": "node scripts/dev-stack.cjs down",
+    "dev:stack:ps": "node scripts/dev-stack.cjs ps",
+    "dev:stack:logs": "node scripts/dev-stack.cjs logs -f",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
     "jwt:dev": "node scripts/generate-dev-jwt-keys.cjs"
   },
   "engines": {
