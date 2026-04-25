@@ -70,7 +70,8 @@ services:
       - nasibashop
 
   meilisearch:
-    image: getmeili/meilisearch:v1.8
+    # Официальный образ (Alpine) ставит curl, wget в образе нет — healthcheck только curl
+    image: getmeili/meilisearch:v1.8.4
     container_name: nasibashop-meilisearch
     environment:
       MEILI_ENV: development
@@ -81,10 +82,11 @@ services:
     volumes:
       - meilisearch_data:/meili_data
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --spider http://localhost:7700/health || exit 1"]
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:7700/health"]
       interval: 10s
-      timeout: 5s
-      retries: 5
+      timeout: 10s
+      start_period: 60s
+      retries: 12
     networks:
       - nasibashop
 
