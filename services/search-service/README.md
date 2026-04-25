@@ -31,12 +31,16 @@
 
 ## Сборка
 
-Требуется **CMake** (для `rdkafka` с фичей `cmake-build`).
+Требуется **Rust ≥ 1.88** (зависимости: Actix, transitive crates с `edition 2021`+), **CMake** (для `rdkafka` с фичей `cmake-build`).
+
+Рекомендуется коммитить **`Cargo.lock`**, чтобы Docker и CI собирали один и тот же набор версий: `cargo generate-lockfile` или `cargo build` локально, затем `git add Cargo.lock`.
 
 ```bash
 cd services/search-service
 cargo build --release
 ```
+
+**Docker** (`infrastructure/docker/search-service/Dockerfile`) использует образ **`rust:1.88-bookworm`**; без `Cargo.lock` при каждом билде `cargo` может взять более новые минорные версии — снова понадобится свежий компилятор, если пакет поднимет MSRV.
 
 ## Docker
 

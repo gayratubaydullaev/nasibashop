@@ -1,10 +1,12 @@
-FROM rust:1.83-bookworm AS build
+# actix/reqwest va boshqa yangi relizlar Rust 1.88+ (va ba’zi kratlar edition 2024) talab qiladi;
+# 1.83 da `cargo build` yiqiladi (masalan crypto-common 0.2.1).
+FROM rust:1.88-bookworm AS build
 RUN apt-get update && apt-get install -y cmake g++ pkg-config libssl-dev libsasl2-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY services/search-service/Cargo.toml ./
-COPY services/search-service/src ./src
+# Butun loyiha: src + Cargo.toml (+ kelgusida Cargo.lock) — alohida `Cargo.lock*` kabi glob kerak emas
+COPY services/search-service/ ./
 RUN cargo build --release
 
 FROM debian:bookworm-slim
