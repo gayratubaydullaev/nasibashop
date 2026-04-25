@@ -5,8 +5,11 @@ import { getPublicApiUrl } from "@/lib/env";
 export function SiteHeader() {
   const api = getPublicApiUrl();
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:gap-6 sm:px-6">
+    <header
+      className="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/90 backdrop-blur-md"
+      style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+    >
+      <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2.5 sm:gap-4 sm:px-5 sm:py-3 md:gap-6 md:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-brand text-sm font-bold text-white shadow-card">
             N

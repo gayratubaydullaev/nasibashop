@@ -2,8 +2,11 @@ import Link from "next/link";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-t border-zinc-200 bg-zinc-50">
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <footer
+      className="mt-12 border-t border-zinc-200 bg-zinc-50 sm:mt-16"
+      data-scrollable-footer
+    >
+      <div className="mx-auto max-w-6xl px-3 py-8 pb-[max(2.5rem,calc(5.5rem+env(safe-area-inset-bottom,0px)))] sm:px-5 sm:py-10 md:px-6 md:pb-10">
         <div className="flex flex-col gap-8 sm:flex-row sm:justify-between">
           <div>
             <p className="text-lg font-semibold text-zinc-900">NasibaShop</p>

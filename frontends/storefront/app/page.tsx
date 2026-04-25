@@ -18,7 +18,7 @@ async function FeaturedSection() {
     );
   }
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
       {data.products.map((p, i) => (
         <ProductCard key={p.id} product={p} index={i} />
       ))}
@@ -48,9 +48,9 @@ async function CategoryChips() {
 export default function HomePage() {
   return (
     <div className="space-y-10">
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-brand via-violet-600 to-fuchsia-600 p-6 text-white shadow-card sm:p-10">
-        <p className="text-sm font-medium uppercase tracking-wide text-white/80">Yozgi kolleksiya</p>
-        <h1 className="mt-2 max-w-xl text-3xl font-bold leading-tight sm:text-4xl">
+      <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-brand via-violet-600 to-fuchsia-600 p-5 text-white shadow-card sm:rounded-3xl sm:p-10">
+        <p className="text-xs font-medium uppercase tracking-wide text-white/80 sm:text-sm">Yozgi kolleksiya</p>
+        <h1 className="mt-2 max-w-xl text-2xl font-bold leading-tight sm:text-3xl md:text-4xl">
           Uzum & WB uslubida zamonaviy xarid
         </h1>
         <p className="mt-4 max-w-lg text-sm text-white/90 sm:text-base">

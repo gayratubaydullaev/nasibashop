@@ -20,20 +20,23 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <nav className="text-xs text-zinc-500">
-        <Link href="/" className="hover:text-brand">
+      <nav
+        className="flex min-h-[1.25rem] max-w-full flex-nowrap items-center gap-x-1 overflow-x-auto text-xs text-zinc-500 scrollbar-none sm:text-sm"
+        aria-label="Yo‘l"
+      >
+        <Link href="/" className="shrink-0 hover:text-brand">
           Bosh sahifa
         </Link>
-        <span className="mx-1">/</span>
-        <Link href={`/catalog/${category.slug}`} className="hover:text-brand">
+        <span className="shrink-0">/</span>
+        <Link href={`/catalog/${category.slug}`} className="shrink-0 hover:text-brand">
           {category.nameUz}
         </Link>
-        <span className="mx-1">/</span>
-        <span className="text-zinc-800 line-clamp-1">{product.titleUz}</span>
+        <span className="shrink-0">/</span>
+        <span className="min-w-0 truncate text-zinc-800">{product.titleUz}</span>
       </nav>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <div className="relative aspect-square overflow-hidden rounded-3xl border border-zinc-100 bg-white shadow-card">
+      <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
+        <div className="relative aspect-square overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-card sm:rounded-3xl">
           {src ? (
             <Image src={src} alt={img?.altText || product.titleUz} fill className="object-cover" priority />
           ) : (

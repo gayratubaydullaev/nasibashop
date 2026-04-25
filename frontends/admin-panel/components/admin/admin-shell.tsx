@@ -4,8 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CreditCard, LayoutDashboard, Package, ShoppingCart, Store, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MobileBottomNav } from "@/components/admin/mobile-bottom-nav";
+import type { MobileNavItem } from "@/components/admin/mobile-bottom-nav";
 
-const adminNav = [
+const adminNav: MobileNavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { href: "/admin/orders", label: "Buyurtmalar", icon: ShoppingCart },
   { href: "/admin/payments", label: "To‘lovlar", icon: CreditCard },
@@ -14,10 +16,16 @@ const adminNav = [
   { href: "/admin/users", label: "Foydalanuvchilar", icon: Users },
 ];
 
+function navActive(pathname: string, item: MobileNavItem) {
+  return item.end
+    ? pathname === item.href
+    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <div className="flex min-h-screen bg-zinc-100">
+    <div className="flex min-h-screen min-h-[100dvh] bg-zinc-100">
       <aside className="hidden w-56 shrink-0 border-r border-zinc-200 bg-white lg:block">
         <div className="p-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-brand">Super admin</p>
@@ -25,7 +33,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
         <nav className="space-y-0.5 px-2 pb-6">
           {adminNav.map((item) => {
-            const active = item.end ? pathname === item.href : pathname.startsWith(item.href);
+            const active = navActive(pathname, item);
             const Icon = item.icon;
             return (
               <Link
@@ -43,22 +51,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
       </aside>
-      <div className="min-w-0 flex-1">
-        <header className="border-b border-zinc-200 bg-white px-4 py-3 lg:hidden">
-          <p className="text-sm font-semibold text-zinc-900">Admin</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {adminNav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-lg border border-zinc-200 px-2 py-1 text-xs text-zinc-700"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
+      <div className="min-w-0 flex-1 pb-0">
+        <header
+          className="sticky top-0 z-30 border-b border-zinc-200 bg-white/95 px-4 py-3 backdrop-blur-md lg:hidden"
+          style={{ paddingTop: "max(0.75rem, env(safe-area-inset-top))" }}
+        >
+          <p className="text-sm font-semibold text-zinc-900">Super admin</p>
+          <p className="text-xs text-zinc-500">NasibaShop</p>
         </header>
-        <div className="p-4 sm:p-6">{children}</div>
+        <div className="max-w-7xl p-3 pb-[max(1.5rem,calc(5.75rem+env(safe-area-inset-bottom,0px)))] sm:p-4 lg:mx-auto lg:max-w-none lg:p-6">
+          {children}
+        </div>
+        <MobileBottomNav items={adminNav} variant="admin" />
       </div>
     </div>
   );

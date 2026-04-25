@@ -1,12 +1,9 @@
 FROM golang:1.22-alpine AS build
-WORKDIR /src
-
-COPY services/product-service/go.mod ./services/product-service/
 WORKDIR /src/services/product-service
-RUN go mod download
 
+COPY services/product-service/go.mod ./
 COPY services/product-service/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -o /out/product-service ./cmd/server
+RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -o /out/product-service ./cmd/server
 
 FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /app

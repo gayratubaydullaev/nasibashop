@@ -7,20 +7,24 @@ import (
 	"time"
 
 	"github.com/segmentio/kafka-go"
-
-	"github.com/nasibashop/nasibashop/services/product-service/internal/service"
 )
+
+// OrderEventHandler — qabul qiluvchi (masalan *service.ProductService), events/service import tsiklini buzish uchun.
+type OrderEventHandler interface {
+	HandleOrderCreated(ctx context.Context, payload []byte) error
+	HandleOrderCancelled(ctx context.Context, payload []byte) error
+}
 
 type OrderConsumer struct {
 	brokers []string
-	service *service.ProductService
+	handler OrderEventHandler
 	logger  *slog.Logger
 }
 
-func NewOrderConsumer(brokers []string, productService *service.ProductService, logger *slog.Logger) *OrderConsumer {
+func NewOrderConsumer(brokers []string, handler OrderEventHandler, logger *slog.Logger) *OrderConsumer {
 	return &OrderConsumer{
 		brokers: brokers,
-		service: productService,
+		handler: handler,
 		logger:  logger,
 	}
 }
@@ -35,11 +39,11 @@ func (c *OrderConsumer) Run(ctx context.Context) {
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		c.consumeTopic(ctx, "order.created", c.service.HandleOrderCreated)
+		c.consumeTopic(ctx, "order.created", c.handler.HandleOrderCreated)
 	}()
 	go func() {
 		defer wg.Done()
-		c.consumeTopic(ctx, "order.cancelled", c.service.HandleOrderCancelled)
+		c.consumeTopic(ctx, "order.cancelled", c.handler.HandleOrderCancelled)
 	}()
 
 	<-ctx.Done()
