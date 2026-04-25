@@ -16,7 +16,7 @@ Xaridorlar uchun vitrina: **Uzum / Wildberries** uslubida binafsha aksent (`#700
 
 ## Ishga tushirish
 
-Bitta buyruq — vitrina + admin: monoreponing ildizida `npm run dev:frontends` (vitrina `:3000`, admin `:3001`).
+Bitta buyruq — vitrina + admin: ildizda `npm run dev:frontends` (`scripts/dev-frontends.cjs`, alohida paket shart emas; avvalo ikkala frontendda `npm install`).
 
 Alohida:
 

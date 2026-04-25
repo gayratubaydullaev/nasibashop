@@ -87,7 +87,7 @@ Upstream в режиме разработки указывает на `host.dock
 | Витрина | `frontends/storefront` | 3000 |
 | Админка | `frontends/admin-panel` | 3001 |
 
-**Оба сразу** (из **корня** репозитория, после `npm install` в корне — тянет `concurrently`):
+**Оба сразу** (скрипт [`scripts/dev-frontends.cjs`](scripts/dev-frontends.cjs), **без** `concurrently`). Зависимости фронтов из корня: `npm run install:frontends`, затем:
 
 ```bash
 # витрина :3000, админка :3001, Kong в .env.local — обычно http://localhost:8000

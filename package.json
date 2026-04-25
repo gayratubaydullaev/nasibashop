@@ -10,6 +10,7 @@
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "jwt:dev": "node scripts/generate-dev-jwt-keys.cjs",
+    "install:frontends": "npm install --prefix frontends/storefront && npm install --prefix frontends/admin-panel",
     "dev:frontends": "node scripts/dev-frontends.cjs",
     "start:frontends": "node scripts/dev-frontends.cjs start",
     "build:frontends": "npm run build --prefix frontends/storefront && npm run build --prefix frontends/admin-panel"
