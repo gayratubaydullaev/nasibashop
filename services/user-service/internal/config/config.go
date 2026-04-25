@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"errors"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -55,9 +56,25 @@ func Load() (Config, error) {
 	}, nil
 }
 
+func readPEMOrFile(envVal, fileEnv string) string {
+	if v := strings.TrimSpace(envVal); v != "" {
+		return v
+	}
+	p := strings.TrimSpace(fileEnv)
+	if p == "" {
+		return ""
+	}
+	p = filepath.Clean(p)
+	b, err := os.ReadFile(p)
+	if err != nil {
+		return ""
+	}
+	return string(b)
+}
+
 func loadKeys() (*rsa.PrivateKey, *rsa.PublicKey, error) {
-	privatePEM := os.Getenv("JWT_PRIVATE_KEY")
-	publicPEM := os.Getenv("JWT_PUBLIC_KEY")
+	privatePEM := readPEMOrFile(os.Getenv("JWT_PRIVATE_KEY"), os.Getenv("JWT_PRIVATE_KEY_FILE"))
+	publicPEM := readPEMOrFile(os.Getenv("JWT_PUBLIC_KEY"), os.Getenv("JWT_PUBLIC_KEY_FILE"))
 	if privatePEM == "" || publicPEM == "" {
 		privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {

@@ -28,7 +28,10 @@ docker compose up -d
 PostgreSQL creates one database per service on first startup through
 `infrastructure/docker/postgres/init-multiple-databases.sh`.
 
-Service images (examples): `infrastructure/docker/order-service/Dockerfile`,
+**Полный бэкенд в Docker (одна команда из корня репозитория):** `npm run dev:stack` — см. [корневой README](../README.md) (файл `docker-compose.services.yml`).
+
+Service images (examples): `infrastructure/docker/user-service/Dockerfile`,
+`infrastructure/docker/order-service/Dockerfile`,
 `infrastructure/docker/product-service/Dockerfile`,
 `infrastructure/docker/payment-service/Dockerfile`,
 `infrastructure/docker/delivery-service/Dockerfile`,

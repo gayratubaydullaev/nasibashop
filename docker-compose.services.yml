@@ -1,0 +1,189 @@
+# Подключает все микросервисы к общей сети с БД/очередями.
+# Старт (из корня репозитория, после `npm run jwt:dev`):
+#   npm run dev:stack
+#   или: node scripts/dev-stack.cjs
+# Kong берёт `kong.docker.yml` (через KONG_DECLARATIVE_CONFIG_FILE в `scripts/dev-stack.cjs`).
+
+services:
+  db-migrate:
+    image: postgres:16-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: nasiba
+      PGPASSWORD: nasiba_dev_password
+    networks:
+      - nasibashop
+    volumes:
+      - ./scripts/migrate-in-docker.sh:/migrate.sh:ro
+      - ./services:/work:ro
+    entrypoint: ["/bin/sh", "/migrate.sh"]
+    restart: "no"
+
+  user-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/user-service/Dockerfile
+    environment:
+      DATABASE_URL: postgres://nasiba:nasiba_dev_password@postgres:5432/user_service?sslmode=disable
+      REDIS_ADDR: redis:6379
+      KAFKA_BROKERS: kafka:9092
+      HTTP_PORT: "8080"
+      JWT_PRIVATE_KEY_FILE: /run/jwt/priv
+      JWT_PUBLIC_KEY_FILE: /run/jwt/pub
+    volumes:
+      - ./services/api-gateway/declarative/dev-not-for-prod/jwt_dev_private.pem:/run/jwt/priv:ro
+      - ./services/api-gateway/declarative/dev-not-for-prod/jwt_dev_public.pem:/run/jwt/pub:ro
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - nasibashop
+    restart: unless-stopped
+
+  product-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/product-service/Dockerfile
+    environment:
+      DATABASE_URL: postgres://nasiba:nasiba_dev_password@postgres:5432/product_service?sslmode=disable
+      REDIS_ADDR: redis:6379
+      KAFKA_BROKERS: kafka:9092
+      HTTP_PORT: "8083"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - nasibashop
+    restart: unless-stopped
+
+  order-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/order-service/Dockerfile
+    environment:
+      ORDER_SERVICE_DATABASE_URL: jdbc:postgresql://postgres:5432/order_service
+      ORDER_SERVICE_DATABASE_USER: nasiba
+      ORDER_SERVICE_DATABASE_PASSWORD: nasiba_dev_password
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - nasibashop
+    restart: unless-stopped
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/payment-service/Dockerfile
+    environment:
+      DATABASE_URL: postgres://nasiba:nasiba_dev_password@postgres:5432/payment_service?sslmode=disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      KAFKA_BROKERS: kafka:9092
+      NODE_ENV: development
+      TYPEORM_SYNC: "true"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - nasibashop
+    restart: unless-stopped
+
+  delivery-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/delivery-service/Dockerfile
+    environment:
+      DATABASE_URL: postgres://nasiba:nasiba_dev_password@postgres:5432/delivery_service?sslmode=disable
+      KAFKA_BROKERS: kafka:9092
+      HTTP_PORT: "8085"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      kafka:
+        condition: service_healthy
+    networks:
+      - nasibashop
+    restart: unless-stopped
+
+  search-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/search-service/Dockerfile
+    environment:
+      HTTP_PORT: "8086"
+      MEILI_URL: http://meilisearch:7700
+      MEILI_MASTER_KEY: nasibashop_meili_dev_master_key
+      KAFKA_BROKERS: kafka:9092
+      PRODUCT_SERVICE_URL: http://product-service:8083
+    depends_on:
+      meilisearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+    networks:
+      - nasibashop
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/notification-service/Dockerfile
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/notification_service
+      KAFKA_BROKERS: kafka:9092
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - nasibashop
+    restart: unless-stopped
+
+  media-service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/media-service/Dockerfile
+    user: "0:0"
+    environment:
+      DATABASE_URL: postgres://nasiba:nasiba_dev_password@postgres:5432/media_service?sslmode=disable
+      KAFKA_BROKERS: kafka:9092
+      HTTP_PORT: "8088"
+      MEDIA_LOCAL_DIR: /app/data
+    volumes:
+      - media_service_data:/app/data
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      kafka:
+        condition: service_healthy
+    networks:
+      - nasibashop
+    restart: unless-stopped
+
+volumes:
+  media_service_data:
+    name: nasibashop_media_service_data

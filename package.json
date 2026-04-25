@@ -3,6 +3,7 @@
   "private": true,
   "description": "Скрипты уровня монорепозитория (сервисы и фронты — в своих package.json).",
   "scripts": {
+    "dev:stack": "node scripts/dev-stack.cjs",
     "jwt:dev": "node scripts/generate-dev-jwt-keys.cjs"
   },
   "engines": {

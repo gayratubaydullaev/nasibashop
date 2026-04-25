@@ -42,5 +42,5 @@ Environment variables:
 - `DATABASE_URL` defaults to local compose PostgreSQL.
 - `REDIS_ADDR` defaults to `localhost:6379`.
 - `KAFKA_BROKERS` defaults to `localhost:9094`.
-- `JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY` are optional in local development; the service generates an ephemeral keypair if omitted.
-  **Kong JWT (dev):** to verify access tokens at the gateway, use the same PEM pair as in [`../api-gateway/declarative/dev-not-for-prod/README.md`](../api-gateway/declarative/dev-not-for-prod/README.md) and keep `JWT_ISSUER` default `nasibashop-user-service` (must match Kong consumer `key`).
+- `JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY` are optional in local development; the service generates an ephemeral keypair if omitted. Alternatively, mount PEMs and set **`JWT_PRIVATE_KEY_FILE`** and **`JWT_PUBLIC_KEY_FILE`** to paths **inside the container** (the full Docker stack does this; see [root `docker-compose.services.yml`](../../docker-compose.services.yml)).
+- **Kong JWT (dev):** to verify access tokens at the gateway, use the same PEM pair as in [`../api-gateway/declarative/dev-not-for-prod/README.md`](../api-gateway/declarative/dev-not-for-prod/README.md) and keep `JWT_ISSUER` default `nasibashop-user-service` (must match Kong consumer `key`).

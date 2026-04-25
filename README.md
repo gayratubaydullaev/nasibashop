@@ -2,6 +2,24 @@
 
 Монорепозиторий маркетплейса: микросервисы (Go / Java / Node.js / Rust), **Kong** API Gateway, фронты **Next.js 15**, инфраструктура **Docker Compose**, **Helm**, **Terraform (EKS)**.
 
+## Быстрый старт: только инфра (БД, Redis, Kafka, Kong…)
+
+**Node.js 20+** в пути (для скрипта JWT). **Docker** с Compose.
+
+1. Скопируйте [`.env.example`](.env.example) в **`.env`**, при занятых портах поправьте `NASIBASHOP_*` (см. комментарии).
+2. Сгенерируйте dev JWT и положите ключи рядом с Kong: из корня репозитория `npm run jwt:dev` (см. [dev-not-for-prod](services/api-gateway/declarative/dev-not-for-prod/README.md)).
+3. Поднимите **всю инфраструктуру и микросервисы** одной командой:
+
+   ```bash
+   npm run dev:stack
+   ```
+
+   Скрипт [`scripts/dev-stack.cjs`](scripts/dev-stack.cjs) выставляет `KONG_DECLARATIVE_CONFIG_FILE` на [`kong.docker.yml`](services/api-gateway/declarative/kong.docker.yml) (маршруты на контейнеры) и запускает `docker compose -f docker-compose.yml -f docker-compose.services.yml up -d --build`. Первый билд **Rust / Java / Go** может занять несколько минут.
+
+4. API: **`http://localhost:8000`** (Kong). Админка/витрина отдельно: `cd frontends/storefront` → `npm install` → `npm run dev` с `NEXT_PUBLIC_API_URL=http://localhost:8000` (см. раздел 5).
+
+**Вариант без сервисов в Docker:** поднять только зависимости — `docker compose up -d`, микросервисы вручную с хоста, Kong смотрит на `host.docker.internal` (см. [`kong.yml`](services/api-gateway/declarative/kong.yml)).
+
 ## Требования
 
 - **Docker** + Docker Compose  
@@ -28,7 +46,9 @@ docker compose up -d
 
 ## 2. Миграции PostgreSQL
 
-Для каждого сервиса с БД примените SQL из каталога `migrations/` (команды есть в README соответствующего сервиса), например:
+При старте **`npm run dev:stack`** контейнер `db-migrate` сам применяет `migrations/001_init.sql` к `user_service`, `product_service`, `delivery_service`, `media_service` (см. [`scripts/migrate-in-docker.sh`](scripts/migrate-in-docker.sh)). **order-service** поднимает схему через Flyway, **payment-service** в dev через TypeORM (см. их README).
+
+Вручную, без полного stack, для сервисов с SQL примените `migrations/` (команды в README соответствующего сервиса), например:
 
 ```bash
 psql "postgres://nasiba:nasiba_dev_password@localhost:5432/user_service?sslmode=disable" -f services/user-service/migrations/001_init.sql

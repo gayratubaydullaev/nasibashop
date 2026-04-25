@@ -12,5 +12,5 @@ FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /app
 COPY --from=build /out/product-service /app/product-service
 USER nonroot:nonroot
-EXPOSE 8080
+EXPOSE 8083
 ENTRYPOINT ["/app/product-service"]

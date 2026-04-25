@@ -1,0 +1,15 @@
+**/.git
+**/.github
+**/.env*
+**/.env.local
+**/node_modules
+**/dist
+**/.next
+**/target
+**/build
+# Backend compose не собирает фронты; при добавлении Dockerfile витрины — убрать строку
+frontends
+docs
+e2e
+infrastructure/kubernetes
+infrastructure/terraform
