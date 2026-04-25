@@ -37,7 +37,8 @@ services:
       - nasibashop
 
   kafka:
-    image: bitnami/kafka:3.7
+    # bitnami/kafka:3.7 удалён с Docker Hub; KRaft-образы — в bitnamilegacy (см. https://hub.docker.com/r/bitnamilegacy/kafka/tags )
+    image: bitnamilegacy/kafka:3.7.1-debian-12-r9
     container_name: nasibashop-kafka
     environment:
       KAFKA_CFG_NODE_ID: 1
