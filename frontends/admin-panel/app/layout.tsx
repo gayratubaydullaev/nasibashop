@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "NasibaShop Admin",
-  description: "NasibaShop boshqaruv paneli",
+  description: "Панель управления NasibaShop",
 };
 
 export const viewport: Viewport = {
@@ -31,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="uz" className="h-full scroll-smooth">
+    <html lang="ru" className="h-full scroll-smooth">
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-h-[100dvh] font-sans antialiased`}
       >

@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 
 const items = [
-  { href: "/", label: "Bosh sahifa", icon: Home, end: true },
-  { href: "/catalog/barchasi", label: "Katalog", icon: LayoutGrid, end: false },
-  { href: "/cart", label: "Savatcha", icon: ShoppingBag, end: false },
-  { href: "/profile", label: "Profil", icon: User, end: false },
+  { href: "/", label: "Главная", icon: Home, end: true },
+  { href: "/catalog/barchasi", label: "Каталог", icon: LayoutGrid, end: false },
+  { href: "/cart", label: "Корзина", icon: ShoppingBag, end: false },
+  { href: "/profile", label: "Профиль", icon: User, end: false },
 ] as const;
 
 function isActive(pathname: string, item: (typeof items)[number]) {
@@ -28,7 +28,7 @@ export function MobileBottomNav() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-200/90 bg-white/95 pb-[env(safe-area-inset-bottom,0px)] shadow-[0_-4px_24px_-8px_rgba(0,0,0,0.08)] backdrop-blur-md md:hidden"
-      aria-label="Asosiy navigatsiya"
+      aria-label="Основная навигация"
     >
       <ul className="mx-auto flex max-w-lg items-stretch justify-between gap-0.5 px-1 pt-1">
         {items.map((item) => {

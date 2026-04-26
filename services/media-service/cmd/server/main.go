@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -44,7 +45,7 @@ func main() {
 
 	repo := repository.New(db)
 	svc := service.NewMediaService(cfg, repo, store, pub, logger)
-	router := httptransport.NewRouter(svc, logger)
+	router := httptransport.NewRouter(svc, db, logger, strings.Join(cfg.KafkaBrokers, ","))
 
 	server := &http.Server{
 		Addr:              ":" + cfg.HTTPPort,

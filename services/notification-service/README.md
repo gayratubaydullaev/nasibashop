@@ -20,7 +20,7 @@ socket.on('notification', (msg) => console.log(msg));
 | GET | `/api/notifications/history?userId=&storeId=&limit=&offset=` | Mongo tarix |
 | POST | `/api/notifications/send` | Ichki yuborish (`title`, `body`, ixtiyoriy `userId`, `storeId`, `topic`, `channels`) |
 
-Health: `/health/live`, `/health/ready` (global `api` dan tashqari).
+Health (global `api` dan tashqari): `GET /health/live` — jarayon; `GET /health/ready` — MongoDB ping + agar `KAFKA_BROKERS` bo‘sh emas bo‘lsa, Kafka brokeriga TCP; xato bo‘lsa **503** (`component`: `mongodb` yoki `kafka`).
 
 ## Kafka
 

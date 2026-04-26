@@ -8,6 +8,10 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nasibashop/nasibashop/packages/go-health"
+	"github.com/redis/go-redis/v9"
+
 	"github.com/nasibashop/nasibashop/services/user-service/internal/domain"
 	"github.com/nasibashop/nasibashop/services/user-service/internal/repository"
 	"github.com/nasibashop/nasibashop/services/user-service/internal/security"
@@ -19,21 +23,34 @@ type contextKey string
 const claimsContextKey contextKey = "claims"
 
 type Handler struct {
-	auth   *service.AuthService
-	tokens *security.TokenManager
-	logger *slog.Logger
+	auth          *service.AuthService
+	tokens        *security.TokenManager
+	logger        *slog.Logger
+	db            *pgxpool.Pool
+	redis         *redis.Client
+	kafkaBrokers  string
 }
 
-func NewRouter(auth *service.AuthService, tokens *security.TokenManager, logger *slog.Logger) http.Handler {
-	handler := &Handler{auth: auth, tokens: tokens, logger: logger}
+func NewRouter(
+	auth *service.AuthService,
+	tokens *security.TokenManager,
+	logger *slog.Logger,
+	db *pgxpool.Pool,
+	redis *redis.Client,
+	kafkaBrokers string,
+) http.Handler {
+	handler := &Handler{
+		auth: auth, tokens: tokens, logger: logger, db: db, redis: redis, kafkaBrokers: kafkaBrokers,
+	}
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /health/live", handler.health)
-	mux.HandleFunc("GET /health/ready", handler.health)
+	mux.HandleFunc("GET /health/live", handler.healthLive)
+	mux.HandleFunc("GET /health/ready", handler.healthReady)
 	mux.HandleFunc("POST /auth/register", handler.register)
 	mux.HandleFunc("POST /auth/login", handler.login)
 	mux.HandleFunc("POST /auth/refresh", handler.refresh)
 	mux.HandleFunc("POST /auth/validate", handler.validateToken)
+	mux.HandleFunc("GET /users/{id}/addresses", handler.requireAuth(handler.listAddresses))
 	mux.HandleFunc("GET /users/{id}", handler.requireAuth(handler.getUser))
 	mux.HandleFunc("PATCH /users/{id}", handler.requireAuth(handler.updateProfile))
 	mux.HandleFunc("POST /users/{id}/addresses", handler.requireAuth(handler.addAddress))
@@ -41,8 +58,12 @@ func NewRouter(auth *service.AuthService, tokens *security.TokenManager, logger 
 	return requestIDMiddleware(jsonMiddleware(mux))
 }
 
-func (h *Handler) health(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+func (h *Handler) healthLive(w http.ResponseWriter, _ *http.Request) {
+	health.Live(w)
+}
+
+func (h *Handler) healthReady(w http.ResponseWriter, r *http.Request) {
+	health.ReadyPostgresRedisKafka(r.Context(), h.db, h.redis, h.kafkaBrokers, h.logger, w)
 }
 
 func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
@@ -127,6 +148,21 @@ func (h *Handler) validateToken(w http.ResponseWriter, r *http.Request) {
 		"valid":  true,
 		"claims": claims,
 	})
+}
+
+func (h *Handler) listAddresses(w http.ResponseWriter, r *http.Request) {
+	userID := r.PathValue("id")
+	if !canAccessUser(r.Context(), userID) {
+		writeError(w, http.StatusForbidden, "forbidden")
+		return
+	}
+
+	addrs, err := h.auth.ListAddresses(r.Context(), userID)
+	if err != nil {
+		writeRepositoryError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"addresses": addrs})
 }
 
 func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {

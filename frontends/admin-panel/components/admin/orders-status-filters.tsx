@@ -19,7 +19,7 @@ function href(basePath: Props["basePath"], storeId: string | undefined, status: 
 export function OrdersStatusFilters({ basePath, storeId, activeStatus }: Props) {
   const cur = activeStatus?.trim() || "";
 
-  const chips: { label: string; status?: string }[] = [{ label: "Barchasi" }, ...ORDER_FLOW_STATUSES.map((s) => ({ label: s, status: s }))];
+  const chips: { label: string; status?: string }[] = [{ label: "Все" }, ...ORDER_FLOW_STATUSES.map((s) => ({ label: s, status: s }))];
 
   return (
     <div className="flex flex-wrap gap-2">

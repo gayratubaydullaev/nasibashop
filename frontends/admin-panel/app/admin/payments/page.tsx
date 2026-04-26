@@ -14,9 +14,9 @@ export default async function AdminPaymentsPage({ searchParams }: Props) {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900">To‘lovlar</h1>
+        <h1 className="text-2xl font-bold text-zinc-900">Платежи</h1>
         <p className="mt-1 text-sm text-zinc-600">
-          <code className="rounded bg-zinc-100 px-1 text-xs">GET /api/payments</code> · Jami:{" "}
+          <code className="rounded bg-zinc-100 px-1 text-xs">GET /api/payments</code> · Всего:{" "}
           {data?.totalElements ?? "—"}
         </p>
       </div>

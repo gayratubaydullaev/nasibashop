@@ -1,4 +1,6 @@
+import { cookies } from "next/headers";
 import { getPublicApiUrl } from "@/lib/env";
+import { COOKIE_ACCESS } from "@/lib/auth/constants";
 
 type FetchInit = RequestInit & {
   next?: { revalidate?: number | false; tags?: string[] };
@@ -13,14 +15,15 @@ export async function fetchJson<T>(path: string, init?: FetchInit): Promise<T | 
     opts.next = next ?? { revalidate: 60 };
   }
 
+  const jar = await cookies();
+  const userAccess = jar.get(COOKIE_ACCESS)?.value?.trim();
   const gatewayJwt = process.env.API_GATEWAY_JWT?.trim();
-  if (gatewayJwt) {
-    const headers = new Headers(opts.headers ?? undefined);
-    if (!headers.has("Authorization")) {
-      headers.set("Authorization", `Bearer ${gatewayJwt}`);
-    }
-    opts.headers = headers;
+  const headers = new Headers(opts.headers ?? undefined);
+  if (!headers.has("Authorization")) {
+    if (userAccess) headers.set("Authorization", `Bearer ${userAccess}`);
+    else if (gatewayJwt) headers.set("Authorization", `Bearer ${gatewayJwt}`);
   }
+  opts.headers = headers;
 
   try {
     const res = await fetch(url, opts);

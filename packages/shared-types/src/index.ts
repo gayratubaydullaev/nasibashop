@@ -11,6 +11,17 @@ export type ProductImage = {
   sortOrder: number;
 };
 
+/** Вариант товара (product-service, список и карточка). */
+export type ProductVariant = {
+  id: string;
+  productId: string;
+  sku: string;
+  color: string;
+  size: string;
+  priceOverrideUnits?: number;
+  active: boolean;
+};
+
 export type Product = {
   id: string;
   storeId: string;
@@ -22,6 +33,7 @@ export type Product = {
   currencyCode: string;
   discountPercent: number;
   status: ProductStatus;
+  variants?: ProductVariant[];
   images?: ProductImage[];
 };
 

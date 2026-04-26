@@ -117,6 +117,31 @@ func (r *UserRepository) UpdateProfile(ctx context.Context, id string, input dom
 	return user, err
 }
 
+func (r *UserRepository) ListAddressesByUserID(ctx context.Context, userID string) ([]domain.Address, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, user_id, label, region, district, street, house, COALESCE(apartment, ''), COALESCE(landmark, ''),
+			COALESCE(latitude, 0), COALESCE(longitude, 0), is_default, created_at, updated_at
+		FROM addresses
+		WHERE user_id = $1
+		ORDER BY is_default DESC, created_at DESC`,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make([]domain.Address, 0)
+	for rows.Next() {
+		a, err := scanAddress(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
+}
+
 func (r *UserRepository) AddAddress(ctx context.Context, address domain.Address) (domain.Address, error) {
 	const query = `
 		INSERT INTO addresses (id, user_id, label, region, district, street, house, apartment, landmark, latitude, longitude, is_default)

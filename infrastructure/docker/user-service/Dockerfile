@@ -1,6 +1,9 @@
 FROM golang:1.22-alpine AS build
-WORKDIR /src/services/user-service
+WORKDIR /src
 
+COPY packages/go-health ./packages/go-health/
+
+WORKDIR /src/services/user-service
 COPY services/user-service/go.mod ./
 COPY services/user-service/ ./
 RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -o /out/user-service ./cmd/server

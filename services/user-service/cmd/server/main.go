@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -54,7 +55,7 @@ func main() {
 	}
 
 	authService := service.NewAuthService(userRepo, tokenStore, eventPublisher, tokenManager, cfg.Auth, logger)
-	router := httptransport.NewRouter(authService, tokenManager, logger)
+	router := httptransport.NewRouter(authService, tokenManager, logger, db, redisClient, strings.Join(cfg.KafkaBrokers, ","))
 
 	server := &http.Server{
 		Addr:              ":" + cfg.HTTPPort,

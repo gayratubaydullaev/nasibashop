@@ -18,21 +18,27 @@ export async function getProduct(id: string): Promise<{ product: ProductFull } |
 export async function getProductsByCategoryId(
   categoryId: string,
   limit = 24,
+  offset = 0,
 ): Promise<ListProductsResponse | null> {
   const q = new URLSearchParams({
     categoryId,
     limit: String(limit),
     status: "ACTIVE",
   });
+  if (offset > 0) q.set("offset", String(offset));
   return fetchJson<ListProductsResponse>(`/api/products?${q.toString()}`, { next: { revalidate: 30 } });
 }
 
 export async function getCatalogProducts(opts: {
   searchQuery?: string;
   categoryId?: string;
+  limit?: number;
+  offset?: number;
 }): Promise<ListProductsResponse | null> {
-  const params = new URLSearchParams({ limit: "24", status: "ACTIVE" });
+  const limit = opts.limit ?? 24;
+  const params = new URLSearchParams({ limit: String(limit), status: "ACTIVE" });
   if (opts.searchQuery) params.set("q", opts.searchQuery);
   if (opts.categoryId) params.set("categoryId", opts.categoryId);
+  if (opts.offset != null && opts.offset > 0) params.set("offset", String(opts.offset));
   return fetchJson<ListProductsResponse>(`/api/products?${params.toString()}`, { next: { revalidate: 30 } });
 }

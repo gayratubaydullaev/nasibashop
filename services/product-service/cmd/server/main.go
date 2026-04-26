@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -48,7 +49,7 @@ func main() {
 
 	go consumer.Run(ctx)
 
-	router := httptransport.NewRouter(productService, logger)
+	router := httptransport.NewRouter(productService, db, logger, strings.Join(cfg.KafkaBrokers, ","))
 	server := &http.Server{
 		Addr:              ":" + cfg.HTTPPort,
 		Handler:           router,

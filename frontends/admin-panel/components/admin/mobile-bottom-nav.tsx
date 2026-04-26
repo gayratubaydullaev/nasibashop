@@ -2,15 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
+import type { ShellNavItem } from "@/components/admin/nav-types";
+import { isNavActive } from "@/components/admin/nav-active";
 import { cn } from "@/lib/utils";
 
-export type MobileNavItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  end?: boolean;
-};
+/** @deprecated используйте ShellNavItem из nav-types */
+export type MobileNavItem = ShellNavItem;
 
 type ShellVariant = "admin" | "store";
 
@@ -28,12 +25,12 @@ const activeStyles: Record<ShellVariant, { active: string; inactive: string; dot
 };
 
 type Props = {
-  items: MobileNavItem[];
+  items: ShellNavItem[];
   variant: ShellVariant;
   "aria-label"?: string;
 };
 
-export function MobileBottomNav({ items, variant, "aria-label": aria = "Navigatsiya" }: Props) {
+export function MobileBottomNav({ items, variant, "aria-label": aria = "Навигация" }: Props) {
   const pathname = usePathname();
   const s = activeStyles[variant];
 
@@ -44,14 +41,13 @@ export function MobileBottomNav({ items, variant, "aria-label": aria = "Navigats
     >
       <ul className="flex max-w-3xl snap-x snap-mandatory items-stretch justify-start gap-0.5 overflow-x-auto px-1 pt-1 scrollbar-none sm:mx-auto sm:justify-center">
         {items.map((item) => {
-          const active = item.end
-            ? pathname === item.href
-            : pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const active = isNavActive(pathname, item);
           const Icon = item.icon;
           return (
             <li key={item.href} className="min-w-[4.5rem] shrink-0 snap-center sm:min-w-[5.5rem]">
               <Link
                 href={item.href}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex min-h-[3.25rem] min-w-[3.5rem] flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-center text-[10px] font-medium leading-tight transition active:scale-[0.98] sm:min-w-[4.5rem] sm:text-xs",
                   active ? s.active : s.inactive,

@@ -4,17 +4,29 @@
 
 ## TypeScript
 
-В `tsconfig.json` приложения:
+Файл `tsconfig.base.json` — **эталон** общих `compilerOptions`. В приложениях `frontends/*` эти опции **продублированы** в корневом `tsconfig.json` без `extends`: Next.js 15 с **Turbopack** иначе выдаёт ошибку разбора `tsconfig.json` (`extends` на другой пакет или на `../../packages/...` не разрешается).
+
+При изменении базы обновите вручную `compilerOptions` во `frontends/storefront/tsconfig.json` и `frontends/admin-panel/tsconfig.json` (плюс плагин Next и `paths`).
+
+Эталон для сравнения:
 
 ```json
 {
-  "extends": "../../packages/shared-config/tsconfig.base.json",
   "compilerOptions": {
-    "plugins": [{ "name": "next" }],
-    "paths": { "@/*": ["./*"] }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true
+  }
 }
 ```
 

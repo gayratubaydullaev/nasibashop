@@ -48,15 +48,16 @@ docker compose up -d
 
 ## 2. Миграции PostgreSQL
 
-При старте **`npm run dev:stack`** контейнер `db-migrate` сам применяет `migrations/001_init.sql` к `user_service`, `product_service`, `delivery_service`, `media_service` (см. [`scripts/migrate-in-docker.sh`](scripts/migrate-in-docker.sh)). **order-service** поднимает схему через Flyway, **payment-service** в dev через TypeORM (см. их README).
+При старте **`npm run dev:stack`** контейнер `db-migrate` сам применяет `migrations/001_init.sql` и демо-сид к `user_service` / `product_service` (`002_seed_*.sql`), а также `001_init.sql` к `delivery_service`, `media_service` (см. [`scripts/migrate-in-docker.sh`](scripts/migrate-in-docker.sh)). **order-service** поднимает схему через Flyway, **payment-service** в dev через TypeORM (см. их README).
 
 Вручную, без полного stack, для сервисов с SQL примените `migrations/` (команды в README соответствующего сервиса), например:
 
 ```bash
 psql "postgres://nasiba:nasiba_dev_password@localhost:5432/user_service?sslmode=disable" -f services/user-service/migrations/001_init.sql
+psql "postgres://nasiba:nasiba_dev_password@localhost:5432/user_service?sslmode=disable" -f services/user-service/migrations/002_seed_demo_users.sql
 ```
 
-Аналогично: `product_service`, `order_service`, `payment_service`, `delivery_service`, `media_service`.
+Аналогично: `product_service` (+ [`002_seed_demo_catalog.sql`](services/product-service/migrations/002_seed_demo_catalog.sql)), `order_service`, `payment_service`, `delivery_service`, `media_service`.
 
 ## 3. Порты сервисов (локально, за Kong)
 
@@ -70,6 +71,8 @@ psql "postgres://nasiba:nasiba_dev_password@localhost:5432/user_service?sslmode=
 | search-service | 8086 | `/api/search` |
 | notification-service | 8087 | `/api/notifications`, `/ws/notifications`, `/socket.io` |
 | media-service | 8088 | `/api/media` |
+
+**Проверка готовности:** у большинства сервисов есть `GET /health/live` (процесс поднят) и `GET /health/ready` (зависимости: БД, Redis, **TCP к Kafka** (Go: user/product/delivery/media; Nest: **payment-service** — Postgres+Redis+Kafka, **notification-service** — Mongo+опционально Kafka при непустом `KAFKA_BROKERS`), **search-service** (Rust) — readiness по **Meilisearch** (`checks.meilisearch`); при сбое часто **503**). Ответы **Go**, **Nest** и **search-service** для `/health/ready` включают единообразное поле **`checks`** (например `postgres`/`UP`, `kafka`/`SKIPPED` если брокеры не заданы). **order-service** (Spring): `GET /actuator/health/readiness` — БД + Kafka (`KafkaClusterHealthIndicator`, бин `kafka`); см. [`services/order-service/README.md`](services/order-service/README.md). Для Go-сервисов **user / product / delivery / media** общая реализация — пакет [`packages/go-health`](packages/go-health/README.md). В `docker-compose.services.yml` для образов с shell заданы `healthcheck` (payment, notification, order, search, media); Go-сервисы на distroless проверяйте с хоста или через оркестратор.
 
 Переменные окружения и точные команды запуска — в `services/<name>/README.md`.
 
@@ -93,6 +96,8 @@ Upstream в режиме разработки указывает на `host.dock
 # витрина :3000, админка :3001, Kong в .env.local — обычно http://localhost:8000
 npm run dev:frontends
 ```
+
+Если **порт 3000 занят** (другой Next) и витрина уходит на 3002 — либо освободите 3000, либо задайте перед командой `NASIBASHOP_STOREFRONT_DEV_PORT=3002` (Windows PowerShell: `$env:NASIBASHOP_STOREFRONT_DEV_PORT=3002`). Админка по умолчанию **3001**; другой порт: `NASIBASHOP_ADMIN_DEV_PORT`. Для `npm run start:frontends` порты прод-сборки: `NASIBASHOP_STOREFRONT_START_PORT`, `NASIBASHOP_ADMIN_START_PORT`. При смене порта витрины настройте **nginx** `location /` → `127.0.0.1:<порт>` и при необходимости `allowedDevOrigins` в `next.config`.
 
 Прод (после `npm run build:frontends`):
 
@@ -119,8 +124,8 @@ npm run dev -- --port 3001
 ## 6. Общие пакеты
 
 - **Protobuf / gRPC:** [`packages/shared-proto`](packages/shared-proto) (`buf.yaml`, `*.proto`).  
-- **TypeScript типы:** [`packages/shared-types`](packages/shared-types) — подключён в **storefront** и **admin-panel** (`file:`).  
-- **ESLint / Prettier / TSconfig:** [`packages/shared-config`](packages/shared-config) — базовый `tsconfig` для Next-приложений.
+- **TypeScript типы:** [`packages/shared-types`](packages/shared-types) — подключён в **storefront** и **admin-panel** (`file:`). Проверка типов из корня: `npm run typecheck`.  
+- **ESLint / Prettier / TSconfig:** [`packages/shared-config`](packages/shared-config) — базовый `tsconfig` для Next-приложений. Линт обоих фронтов из корня: `npm run lint:frontends`.
 
 ## 7. Kubernetes и облако
 

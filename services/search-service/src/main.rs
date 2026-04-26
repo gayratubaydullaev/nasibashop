@@ -44,8 +44,8 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
-            .route("/health/live", web::get().to(handlers::health))
-            .route("/health/ready", web::get().to(handlers::health))
+            .route("/health/live", web::get().to(handlers::health_live))
+            .route("/health/ready", web::get().to(handlers::health_ready))
             .route("/api/search", web::get().to(handlers::search))
             .route("/api/search/suggest", web::get().to(handlers::suggest))
             .route("/api/search/reindex", web::post().to(handlers::reindex))

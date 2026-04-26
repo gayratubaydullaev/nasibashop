@@ -11,19 +11,19 @@ import {
 } from "recharts";
 
 const demo = [
-  { name: "Dush", sales: 4200 },
-  { name: "Sesh", sales: 3800 },
-  { name: "Chor", sales: 5100 },
-  { name: "Pay", sales: 4600 },
-  { name: "Jum", sales: 6200 },
-  { name: "Shan", sales: 5800 },
-  { name: "Yak", sales: 7100 },
+  { name: "Пн", sales: 4200 },
+  { name: "Вт", sales: 3800 },
+  { name: "Ср", sales: 5100 },
+  { name: "Чт", sales: 4600 },
+  { name: "Пт", sales: 6200 },
+  { name: "Сб", sales: 5800 },
+  { name: "Вс", sales: 7100 },
 ];
 
 export function DashboardChart() {
   return (
     <div className="w-full min-w-0 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
-      <p className="mb-2 text-sm font-medium text-zinc-700">Sotuvlar (namuna)</p>
+      <p className="mb-2 text-sm font-medium text-zinc-700">Продажи (демо)</p>
       <div className="w-full min-w-0">
         <ResponsiveContainer width="100%" height={280} minWidth={0}>
           <AreaChart data={demo} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>

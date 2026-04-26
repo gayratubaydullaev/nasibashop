@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NasibaShop — onlayn do‘kon",
-  description: "O‘zbekiston uchun marketplace: katalog, yetkazib berish, qulay to‘lov.",
+  title: "NasibaShop — интернет-магазин",
+  description: "Маркетплейс: каталог, доставка, удобная оплата.",
 };
 
 export const viewport: Viewport = {
@@ -34,14 +34,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="uz" className="h-full scroll-smooth">
+    <html lang="ru" className="h-full scroll-smooth">
       <body
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen min-h-[100dvh] font-sans antialiased md:min-h-0`}
       >
         <Providers>
+          <a
+            href="#site-main"
+            className="sr-only z-[100] rounded-xl bg-white px-4 py-3 text-sm font-semibold text-zinc-900 shadow-lg outline-none ring-2 ring-brand ring-offset-2 focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+          >
+            К основному содержимому
+          </a>
           <SiteHeader />
           <main
-            className="mx-auto min-h-[50vh] max-w-6xl px-3 pb-6 pt-4 sm:px-5 sm:pb-8 sm:pt-5 md:min-h-[60vh] md:px-6 md:pb-12 md:pt-6"
+            id="site-main"
+            tabIndex={-1}
+            className="mx-auto min-h-[50vh] max-w-6xl px-3 pb-6 pt-4 outline-none sm:px-5 sm:pb-8 sm:pt-5 md:min-h-[60vh] md:px-6 md:pb-12 md:pt-6"
           >
             {children}
           </main>

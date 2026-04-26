@@ -22,10 +22,10 @@ export default async function ProductPage({ params }: Props) {
     <div className="space-y-6">
       <nav
         className="flex min-h-[1.25rem] max-w-full flex-nowrap items-center gap-x-1 overflow-x-auto text-xs text-zinc-500 scrollbar-none sm:text-sm"
-        aria-label="Yo‘l"
+        aria-label="Хлебные крошки"
       >
         <Link href="/" className="shrink-0 hover:text-brand">
-          Bosh sahifa
+          Главная
         </Link>
         <span className="shrink-0">/</span>
         <Link href={`/catalog/${category.slug}`} className="shrink-0 hover:text-brand">
@@ -40,12 +40,12 @@ export default async function ProductPage({ params }: Props) {
           {src ? (
             <Image src={src} alt={img?.altText || product.titleUz} fill className="object-cover" priority />
           ) : (
-            <div className="flex h-full items-center justify-center text-zinc-400">Rasm yo‘q</div>
+            <div className="flex h-full items-center justify-center text-zinc-400">Нет фото</div>
           )}
         </div>
         <div className="flex flex-col gap-4">
           <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl">{product.titleUz}</h1>
-          {product.brand && <p className="text-sm text-zinc-500">Brend: {product.brand}</p>}
+          {product.brand && <p className="text-sm text-zinc-500">Бренд: {product.brand}</p>}
           <div>
             {product.discountPercent > 0 && (
               <p className="text-sm text-zinc-400 line-through">{formatPriceUZS(product.priceUnits)}</p>
@@ -53,7 +53,7 @@ export default async function ProductPage({ params }: Props) {
             <p className="text-2xl font-bold text-brand">{formatPriceUZS(price)}</p>
           </div>
           <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-600">{product.descriptionUz}</p>
-          <AddToCartButton product={product} />
+          <AddToCartButton productFull={res.product} />
         </div>
       </div>
     </div>

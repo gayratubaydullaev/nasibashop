@@ -126,6 +126,10 @@ func (s *AuthService) GetUser(ctx context.Context, id string) (domain.User, erro
 	return s.users.FindByID(ctx, id)
 }
 
+func (s *AuthService) ListAddresses(ctx context.Context, userID string) ([]domain.Address, error) {
+	return s.users.ListAddressesByUserID(ctx, userID)
+}
+
 func (s *AuthService) UpdateProfile(ctx context.Context, id string, input domain.UpdateProfileInput) (domain.User, error) {
 	return s.users.UpdateProfile(ctx, id, input)
 }

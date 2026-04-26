@@ -28,6 +28,11 @@
 | `PAYMENT_AUTO_COMPLETE` | `true` | В dev автоматически завершать онлайн-платёж (**в production задайте `false`**, см. Helm `values` и [`docs/MVP-PRODUCTION.md`](../../docs/MVP-PRODUCTION.md)) |
 | `PAYMENT_AUTO_COMPLETE_DELAY_MS` | `1500` | Задержка перед job auto-complete |
 
+## Health (без префикса `/api`)
+
+- `GET /health/live` — процесс жив.
+- `GET /health/ready` — **503**, если недоступны Postgres, Redis (`REDIS_HOST`/`REDIS_PORT`) или Kafka (TCP к `KAFKA_BROKERS`; пустая строка — проверка Kafka не выполняется).
+
 ## HTTP API (префикс `/api`)
 
 - `GET /api/payments` — список платежей (пагинация: `page`, `size`, опционально `status`; для production добавьте auth/RBAC).

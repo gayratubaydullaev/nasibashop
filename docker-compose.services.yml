@@ -3,6 +3,9 @@
 #   npm run dev:stack
 #   или: node scripts/dev-stack.cjs
 # Kong берёт `kong.docker.yml` (через KONG_DECLARATIVE_CONFIG_FILE в `scripts/dev-stack.cjs`).
+#
+# Health: у сервисов на Go (distroless) нет shell внутри образа — healthcheck в compose не задан;
+# снаружи: GET /health/live (процесс), GET /health/ready (БД/Redis/Meili где реализовано). Node/Java/Rust — см. healthcheck ниже.
 
 services:
   db-migrate:
@@ -76,6 +79,12 @@ services:
       ORDER_SERVICE_DATABASE_USER: nasiba
       ORDER_SERVICE_DATABASE_PASSWORD: nasiba_dev_password
       KAFKA_BROKERS: kafka:9092
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/actuator/health/readiness"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
     depends_on:
       db-migrate:
         condition: service_completed_successfully
@@ -98,6 +107,12 @@ services:
       KAFKA_BROKERS: kafka:9092
       NODE_ENV: development
       TYPEORM_SYNC: "true"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8082/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     depends_on:
       db-migrate:
         condition: service_completed_successfully
@@ -120,6 +135,8 @@ services:
     depends_on:
       db-migrate:
         condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
       kafka:
         condition: service_healthy
     networks:
@@ -136,6 +153,12 @@ services:
       MEILI_MASTER_KEY: nasibashop_meili_dev_master_key
       KAFKA_BROKERS: kafka:9092
       PRODUCT_SERVICE_URL: http://product-service:8083
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8086/health/ready"]
+      interval: 25s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
     depends_on:
       meilisearch:
         condition: service_healthy
@@ -154,6 +177,12 @@ services:
     environment:
       MONGODB_URI: mongodb://mongo:27017/notification_service
       KAFKA_BROKERS: kafka:9092
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8087/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
     depends_on:
       mongo:
         condition: service_healthy
@@ -173,6 +202,12 @@ services:
       KAFKA_BROKERS: kafka:9092
       HTTP_PORT: "8088"
       MEDIA_LOCAL_DIR: /app/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8088/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     volumes:
       - media_service_data:/app/data
     depends_on:

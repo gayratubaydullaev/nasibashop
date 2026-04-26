@@ -24,8 +24,8 @@ Go service responsible for catalog, variants, stock, categories, and Kafka integ
 - `POST /products/import.csv`
 - `GET /categories`
 - `POST /categories`
-- `GET /health/live`
-- `GET /health/ready`
+- `GET /health/live` — liveness
+- `GET /health/ready` — **503**, если недоступны Postgres или Kafka (TCP к брокерам из `KAFKA_BROKERS`; пустое значение — без проверки Kafka)
 
 ## Local Run
 
@@ -35,7 +35,7 @@ Start dependencies from the repository root:
 docker compose up -d postgres kafka
 ```
 
-Apply `migrations/001_init.sql` to the `product_service` database, then:
+Apply `migrations/001_init.sql`, затем **`migrations/002_seed_demo_catalog.sql`** (категории, товары `demo-store`, остатки, картинки-заглушки), затем:
 
 ```bash
 go run ./cmd/server

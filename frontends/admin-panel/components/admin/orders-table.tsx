@@ -18,7 +18,7 @@ function shortId(id: string) {
 
 function formatDate(iso: string) {
   try {
-    return new Intl.DateTimeFormat("uz-Latn-UZ", {
+    return new Intl.DateTimeFormat("ru-RU", {
       dateStyle: "short",
       timeStyle: "short",
     }).format(new Date(iso));
@@ -35,7 +35,7 @@ function SubmitButton() {
       disabled={pending}
       className="rounded-lg bg-brand px-2.5 py-1 text-xs font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
     >
-      {pending ? "…" : "Saqlash"}
+      {pending ? "…" : "Сохранить"}
     </button>
   );
 }
@@ -70,7 +70,7 @@ function OrderStatusCell({ order }: { order: OrderResponse }) {
           <SubmitButton />
         </div>
         {state?.error ? <span className="text-xs text-red-600">{state.error}</span> : null}
-        {state?.ok ? <span className="text-xs text-emerald-600">Yangilandi</span> : null}
+        {state?.ok ? <span className="text-xs text-emerald-600">Обновлено</span> : null}
       </form>
     </td>
   );
@@ -80,7 +80,7 @@ export function OrdersTable({ orders, emptyHint }: Props) {
   if (!orders.length) {
     return (
       <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-10 text-center text-sm text-zinc-600">
-        {emptyHint ?? "Buyurtmalar yo‘q yoki API javob bermadi."}
+        {emptyHint ?? "Заказов нет или API не ответил."}
       </div>
     );
   }
@@ -90,11 +90,11 @@ export function OrdersTable({ orders, emptyHint }: Props) {
       <table className="min-w-full divide-y divide-zinc-200 text-left text-sm">
         <thead className="bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500">
           <tr>
-            <th className="px-4 py-3">Buyurtma</th>
-            <th className="px-4 py-3">Mijoz</th>
-            <th className="px-4 py-3">Holat</th>
-            <th className="px-4 py-3">Jami</th>
-            <th className="px-4 py-3">Sana</th>
+            <th className="px-4 py-3">Заказ</th>
+            <th className="px-4 py-3">Клиент</th>
+            <th className="px-4 py-3">Статус</th>
+            <th className="px-4 py-3">Сумма</th>
+            <th className="px-4 py-3">Дата</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100 text-zinc-800">

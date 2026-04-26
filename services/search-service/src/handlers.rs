@@ -47,8 +47,19 @@ fn suggest_default_limit() -> usize {
     8
 }
 
-pub async fn health() -> impl Responder {
+pub async fn health_live() -> impl Responder {
     HttpResponse::Ok().json(serde_json::json!({ "status": "ok" }))
+}
+
+pub async fn health_ready(state: web::Data<AppState>) -> impl Responder {
+    let (ok, body) = state.indexer.readiness_response().await;
+    if !ok {
+        if let Some(d) = body.get("detail").and_then(|v| v.as_str()) {
+            log::warn!("readiness: {}", d);
+        }
+        return HttpResponse::ServiceUnavailable().json(body);
+    }
+    HttpResponse::Ok().json(body)
 }
 
 pub async fn search(state: web::Data<AppState>, q: web::Query<SearchQuery>) -> actix_web::Result<HttpResponse> {

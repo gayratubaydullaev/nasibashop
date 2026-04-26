@@ -13,6 +13,12 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+@layer base {
+  :where(a, button, input:not([type="hidden"]), select, textarea):focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-brand/80;
+  }
+}
+
 @layer utilities {
   .scrollbar-none {
     -ms-overflow-style: none;

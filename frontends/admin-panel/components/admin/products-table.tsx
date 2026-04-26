@@ -1,16 +1,19 @@
+import Link from "next/link";
 import type { Product } from "@nasibashop/shared-types";
 import { formatPriceUZS } from "@/lib/format-uzs";
 
 type Props = {
   products: Product[];
   emptyMessage?: string;
+  /** Префикс ссылки «Редактировать», например `/admin/products` или `/store/products` */
+  editBasePath?: string;
 };
 
-export function ProductsTable({ products, emptyMessage }: Props) {
+export function ProductsTable({ products, emptyMessage, editBasePath }: Props) {
   if (!products.length) {
     return (
       <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-10 text-center text-sm text-zinc-600">
-        {emptyMessage ?? "Mahsulotlar yo‘q yoki API (`NEXT_PUBLIC_API_URL`) javob bermadi."}
+        {emptyMessage ?? "Товаров нет или API (`NEXT_PUBLIC_API_URL`) не ответил."}
       </div>
     );
   }
@@ -20,10 +23,11 @@ export function ProductsTable({ products, emptyMessage }: Props) {
       <table className="min-w-full divide-y divide-zinc-200 text-left text-sm">
         <thead className="bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500">
           <tr>
-            <th className="px-4 py-3">Nomi</th>
-            <th className="px-4 py-3">Brend</th>
-            <th className="px-4 py-3">Narx</th>
-            <th className="px-4 py-3">Holat</th>
+            <th className="px-4 py-3">Название</th>
+            <th className="px-4 py-3">Бренд</th>
+            <th className="px-4 py-3">Цена</th>
+            <th className="px-4 py-3">Статус</th>
+            {editBasePath ? <th className="px-4 py-3 w-28"> </th> : null}
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100 text-zinc-800">
@@ -37,6 +41,16 @@ export function ProductsTable({ products, emptyMessage }: Props) {
                   {p.status}
                 </span>
               </td>
+              {editBasePath ? (
+                <td className="px-4 py-3">
+                  <Link
+                    href={`${editBasePath}/${p.id}`}
+                    className="text-sm font-medium text-brand hover:underline"
+                  >
+                    Изменить
+                  </Link>
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>

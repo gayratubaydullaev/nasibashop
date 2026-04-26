@@ -7,28 +7,36 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nasibashop/nasibashop/packages/go-health"
 	"github.com/nasibashop/nasibashop/services/media-service/internal/repository"
 	"github.com/nasibashop/nasibashop/services/media-service/internal/service"
 )
 
 type Handler struct {
-	svc    *service.MediaService
-	logger *slog.Logger
+	svc           *service.MediaService
+	db            *pgxpool.Pool
+	logger        *slog.Logger
+	kafkaBrokers  string
 }
 
-func NewRouter(svc *service.MediaService, logger *slog.Logger) http.Handler {
-	h := &Handler{svc: svc, logger: logger}
+func NewRouter(svc *service.MediaService, db *pgxpool.Pool, logger *slog.Logger, kafkaBrokers string) http.Handler {
+	h := &Handler{svc: svc, db: db, logger: logger, kafkaBrokers: kafkaBrokers}
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /health/live", h.health)
-	mux.HandleFunc("GET /health/ready", h.health)
+	mux.HandleFunc("GET /health/live", h.healthLive)
+	mux.HandleFunc("GET /health/ready", h.healthReady)
 	mux.HandleFunc("POST /media/upload", h.upload)
 	mux.HandleFunc("GET /media/{id}", h.get)
 	mux.HandleFunc("DELETE /media/{id}", h.delete)
 	return requestIDMiddleware(mux)
 }
 
-func (h *Handler) health(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+func (h *Handler) healthLive(w http.ResponseWriter, _ *http.Request) {
+	health.Live(w)
+}
+
+func (h *Handler) healthReady(w http.ResponseWriter, r *http.Request) {
+	health.ReadyPostgresKafka(r.Context(), h.db, h.kafkaBrokers, h.logger, w)
 }
 
 func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {

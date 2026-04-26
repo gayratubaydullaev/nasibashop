@@ -6,7 +6,8 @@
 
 | Метод | Путь | Описание |
 |--------|------|----------|
-| GET | `/health/live`, `/health/ready` | Проверки |
+| GET | `/health/live` | Liveness |
+| GET | `/health/ready` | Readiness: Postgres + TCP к Kafka (`KAFKA_BROKERS`; пусто — без Kafka) |
 | POST | `/media/upload` | Multipart, поле `file` |
 | GET | `/media/{id}` | Оригинал или трансформация: `?width=&height=&format=jpeg\|png\|webp` |
 | DELETE | `/media/{id}` | Удаление из БД и хранилища |

@@ -28,3 +28,12 @@ Defaults assume local `docker-compose.yml`:
 - HTTP port: `8081` (`ORDER_SERVICE_PORT`)
 
 Topic names can be overridden via `app.kafka.topics.*` in `src/main/resources/application.yml`.
+
+## Health (Actuator)
+
+With `management.endpoints.web.exposure.include: health,info` (see `application.yml`):
+
+- **Liveness**: `GET /actuator/health/liveness` — Spring `readinessState` / liveness probe defaults.
+- **Readiness**: `GET /actuator/health/readiness` — includes `readinessState`, JDBC `db`, and custom **`kafka`** (`KafkaClusterHealthIndicator`, bean name `kafka`). It calls `AdminClient.describeCluster()`; empty `spring.kafka.bootstrap-servers` reports Kafka as **skipped** (UP with detail), so local runs without brokers still pass readiness if DB is up.
+
+If you rename the indicator bean, update `management.endpoint.health.group.readiness.include` to match the contributor id (Spring strips the `HealthIndicator` suffix from the default bean name; this project uses `@Component("kafka")` explicitly).

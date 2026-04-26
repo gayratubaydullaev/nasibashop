@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getPublicApiUrl } from "@/lib/env";
+import { resolveGatewayBearer } from "@/lib/auth/bearer";
 import { ORDER_FLOW_STATUSES, type OrderFlowStatus } from "@/types/order";
 
 export type OrderStatusActionState = {
@@ -23,9 +24,9 @@ export async function updateOrderStatus(
     return { error: "Noto‘g‘ri ma’lumot" };
   }
 
-  const token = process.env.API_GATEWAY_JWT?.trim();
+  const token = await resolveGatewayBearer();
   if (!token) {
-    return { error: "API_GATEWAY_JWT sozlanmagan (.env.local)" };
+    return { error: "Нет токена: войдите в панель или задайте API_GATEWAY_JWT в .env.local" };
   }
 
   const base = getPublicApiUrl();

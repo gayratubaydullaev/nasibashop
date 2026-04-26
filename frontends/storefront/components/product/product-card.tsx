@@ -42,7 +42,7 @@ export function ProductCard({ product, index = 0 }: Props) {
               sizes="(max-width: 640px) 50vw, 25vw"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-zinc-400">Rasm yo‘q</div>
+            <div className="flex h-full items-center justify-center text-sm text-zinc-400">Нет фото</div>
           )}
           {product.discountPercent > 0 && (
             <span className="absolute left-2 top-2 rounded-lg bg-brand px-2 py-0.5 text-xs font-semibold text-white">

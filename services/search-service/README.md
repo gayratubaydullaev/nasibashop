@@ -12,7 +12,8 @@
 
 | Метод | Путь | Описание |
 |--------|------|----------|
-| GET | `/health/live`, `/health/ready` | Liveness / readiness |
+| GET | `/health/live` | Liveness |
+| GET | `/health/ready` | Readiness: **200** `{"status":"ok","checks":{"meilisearch":"UP"}}` (Meili `GET /health`). Kafka-индексатор в фоне — в readiness **не входит**. **503** при недоступном Meili: `component`, `checks`, `detail` |
 | GET | `/api/search` | Поиск: `q`, `category` (slug), `categoryId`, `minPrice`, `maxPrice`, `storeId`, `brand`, `inStockOnly`, `sort` (`price_asc`, `price_desc`, `created_at_desc`, `popularity_desc`), `limit`, `offset` |
 | GET | `/api/search/suggest` | Подсказки: `q`, `limit` |
 | POST | `/api/search/reindex` | Полная переиндексация (если задан `REINDEX_API_KEY` — заголовок `X-Admin-Key`) |

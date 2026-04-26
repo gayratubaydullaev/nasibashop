@@ -335,4 +335,42 @@ impl Indexer {
         let path = format!("/indexes/{}/search", self.index_uid);
         self.meili_send(Method::POST, &path, Some(body)).await
     }
+
+    /// Readiness: Meilisearch `GET /health` (без Bearer).
+    pub async fn ping_meilisearch(&self) -> Result<()> {
+        let url = format!("{}/health", self.meili_url);
+        let res = self
+            .http
+            .get(url)
+            .timeout(Duration::from_secs(2))
+            .send()
+            .await
+            .context("meilisearch /health")?;
+        if !res.status().is_success() {
+            anyhow::bail!("meilisearch status {}", res.status());
+        }
+        Ok(())
+    }
+
+    /// JSON для `GET /health/ready`: `{ status, checks }` или 503 с `component` + `detail`.
+    /// Только Meilisearch; Kafka-воркер в фоне и не входит в HTTP readiness.
+    pub async fn readiness_response(&self) -> (bool, serde_json::Value) {
+        use serde_json::json;
+
+        let mut checks = serde_json::Map::new();
+        if let Err(e) = self.ping_meilisearch().await {
+            checks.insert("meilisearch".into(), json!("DOWN"));
+            return (
+                false,
+                json!({
+                    "status": "unavailable",
+                    "component": "meilisearch",
+                    "checks": checks,
+                    "detail": e.to_string(),
+                }),
+            );
+        }
+        checks.insert("meilisearch".into(), json!("UP"));
+        (true, json!({ "status": "ok", "checks": checks }))
+    }
 }

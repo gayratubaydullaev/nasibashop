@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nasibashop/nasibashop/packages/go-health"
 
 	"github.com/nasibashop/nasibashop/services/product-service/internal/domain"
 	"github.com/nasibashop/nasibashop/services/product-service/internal/repository"
@@ -16,16 +18,18 @@ import (
 )
 
 type Handler struct {
-	service *service.ProductService
-	logger  *slog.Logger
+	service       *service.ProductService
+	db            *pgxpool.Pool
+	logger        *slog.Logger
+	kafkaBrokers  string
 }
 
-func NewRouter(productService *service.ProductService, logger *slog.Logger) http.Handler {
-	handler := &Handler{service: productService, logger: logger}
+func NewRouter(productService *service.ProductService, db *pgxpool.Pool, logger *slog.Logger, kafkaBrokers string) http.Handler {
+	handler := &Handler{service: productService, db: db, logger: logger, kafkaBrokers: kafkaBrokers}
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /health/live", handler.health)
-	mux.HandleFunc("GET /health/ready", handler.health)
+	mux.HandleFunc("GET /health/live", handler.healthLive)
+	mux.HandleFunc("GET /health/ready", handler.healthReady)
 
 	mux.HandleFunc("GET /products", handler.listProducts)
 	mux.HandleFunc("POST /products", handler.createProduct)
@@ -44,8 +48,12 @@ func NewRouter(productService *service.ProductService, logger *slog.Logger) http
 	return requestIDMiddleware(jsonMiddleware(mux))
 }
 
-func (h *Handler) health(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+func (h *Handler) healthLive(w http.ResponseWriter, _ *http.Request) {
+	health.Live(w)
+}
+
+func (h *Handler) healthReady(w http.ResponseWriter, r *http.Request) {
+	health.ReadyPostgresKafka(r.Context(), h.db, h.kafkaBrokers, h.logger, w)
 }
 
 func (h *Handler) createProduct(w http.ResponseWriter, r *http.Request) {

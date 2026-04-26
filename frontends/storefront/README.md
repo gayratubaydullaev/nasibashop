@@ -1,24 +1,27 @@
 # Storefront (Next.js 15)
 
-Xaridorlar uchun vitrina: **Uzum / Wildberries** uslubida binafsha aksent (`#7000FF`), mobil-first, **TanStack Query**, **Zustand** (savatcha), **Framer Motion**.
+Витрина для покупателей: мобильный интерфейс, акцент бренда `#7000FF`, **TanStack Query**, **Zustand** (корзина в `localStorage`), **Framer Motion**.
 
-## Sahifalar
+## Страницы
 
-| Yo‘l | Tavsif |
-|------|--------|
-| `/` | Bosh sahifa, mashhur mahsulotlar, kategoriyalar |
-| `/catalog/[slug]` | `barchasi` yoki kategoriya `slug` bo‘yicha; `?q=` qidiruv |
-| `/product/[id]` | Mahsulot kartochkasi |
-| `/cart` | Savatcha (localStorage) |
-| `/checkout` | Buyurtma skeleti |
-| `/profile` | Kabinet skeleti |
-| `/profile/orders/[id]` | Buyurtma detali skeleti |
+| Путь | Описание |
+|------|----------|
+| `/` | Главная, популярные товары, категории |
+| `/catalog/[slug]` | Все товары (`barchasi`) или категория по `slug`; поиск `?q=`; пагинация `?page=` |
+| `/product/[id]` | Карточка товара |
+| `/cart` | Корзина |
+| `/login`, `/register` | Вход и регистрация покупателя (email + пароль) → JWT в httpOnly-cookie |
+| `/checkout` | Оформление (нужна сессия). Bearer: cookie, иначе `API_GATEWAY_JWT` |
+| `/profile` | Личный кабинет (нужна сессия): заказы, профиль, адреса |
+| `/profile/orders/[id]` | Детали заказа (`GET /api/orders/{id}`) |
 
-## Ishga tushirish
+Поиск в шапке на страницах `/catalog/...` отправляет запрос **в текущий раздел** (категория + `q`). На остальных маршрутах — в `/catalog/barchasi`.
 
-Bitta buyruq — vitrina + admin: ildizda `npm run dev:frontends` (`scripts/dev-frontends.cjs`, alohida paket shart emas; avvalo ikkala frontendda `npm install`).
+## Запуск
 
-Alohida:
+Витрина + админка из корня репозитория: `npm run dev:frontends` (см. `scripts/dev-frontends.cjs`). Перед этим в каждом фронте выполните `npm install` или из корня `npm run install:frontends`.
+
+Отдельно:
 
 ```bash
 cp .env.example .env.local
@@ -26,14 +29,21 @@ npm install
 npm run dev
 ```
 
-Odatda `http://localhost:3000`. API: **Kong** `http://localhost:8000` (`NEXT_PUBLIC_API_URL`).
+Обычно `http://localhost:3000`. API: Kong `NEXT_PUBLIC_API_URL` (например `http://localhost:8000` или `18000` с профилем nested ports).
+
+Если `npm run dev` (Turbopack) снова ругается на `tsconfig`, запустите **`npm run dev:webpack`** — обычный бандлер Next без Turbopack.
 
 ## TypeScript
 
-- **`@nasibashop/shared-types`** (`file:../../packages/shared-types`) — DTOlar.
-- **`tsconfig`** — [`packages/shared-config`](../../packages/shared-config) `tsconfig.base.json` dan `extends`.
+- **`@nasibashop/shared-types`** — общие DTO.
+- **`tsconfig`** — базовые флаги совпадают с [`packages/shared-config/tsconfig.base.json`](../../packages/shared-config/tsconfig.base.json) (без `extends`, см. README пакета).
 
-## Build
+## Доступность и UX
+
+- Ссылка **«К основному содержимому»** (первая при Tab), якорь `#site-main` на `<main>`.
+- Видимый **`:focus-visible`** для ссылок, кнопок и полей ввода (`globals.css`).
+
+## Сборка
 
 ```bash
 npm run build

@@ -10,7 +10,7 @@ function shortId(id: string) {
 
 function formatDate(iso: string) {
   try {
-    return new Intl.DateTimeFormat("uz-Latn-UZ", {
+    return new Intl.DateTimeFormat("ru-RU", {
       dateStyle: "short",
       timeStyle: "short",
     }).format(new Date(iso));
@@ -24,7 +24,7 @@ function formatAmount(amountUnits: string, currency: string) {
   if (!Number.isFinite(n)) return amountUnits;
   const code = currency?.length === 3 ? currency : "UZS";
   try {
-    return new Intl.NumberFormat("uz-Latn-UZ", {
+    return new Intl.NumberFormat("ru-RU", {
       style: "currency",
       currency: code,
       maximumFractionDigits: 0,
@@ -38,7 +38,7 @@ export function PaymentsTable({ payments }: Props) {
   if (!payments.length) {
     return (
       <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-10 text-center text-sm text-zinc-600">
-        To‘lovlar yo‘q yoki API javob bermadi.
+        Платежей нет или API не ответил.
       </div>
     );
   }
@@ -48,12 +48,12 @@ export function PaymentsTable({ payments }: Props) {
       <table className="min-w-full divide-y divide-zinc-200 text-left text-sm">
         <thead className="bg-zinc-50 text-xs font-semibold uppercase tracking-wide text-zinc-500">
           <tr>
-            <th className="px-4 py-3">To‘lov</th>
-            <th className="px-4 py-3">Buyurtma</th>
-            <th className="px-4 py-3">Holat</th>
+            <th className="px-4 py-3">Платёж</th>
+            <th className="px-4 py-3">Заказ</th>
+            <th className="px-4 py-3">Статус</th>
             <th className="px-4 py-3">Provayder</th>
             <th className="px-4 py-3">Summa</th>
-            <th className="px-4 py-3">Sana</th>
+            <th className="px-4 py-3">Дата</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100 text-zinc-800">

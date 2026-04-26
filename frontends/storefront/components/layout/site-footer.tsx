@@ -11,31 +11,41 @@ export function SiteFooter() {
           <div>
             <p className="text-lg font-semibold text-zinc-900">NasibaShop</p>
             <p className="mt-2 max-w-sm text-sm text-zinc-600">
-              O‘zbekiston bozori uchun zamonaviy marketplace. Tez yetkazib berish va qulay to‘lov.
+              Современный маркетплейс: быстрая доставка и удобная оплата.
             </p>
           </div>
           <div className="flex flex-wrap gap-8 text-sm">
             <div>
-              <p className="font-medium text-zinc-900">Xaridor</p>
+              <p className="font-medium text-zinc-900">Покупателю</p>
               <ul className="mt-2 space-y-1 text-zinc-600">
                 <li>
                   <Link href="/catalog/barchasi" className="hover:text-brand">
-                    Katalog
+                    Каталог
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/cart" className="hover:text-brand">
+                    Корзина
                   </Link>
                 </li>
                 <li>
                   <Link href="/profile" className="hover:text-brand">
-                    Profil
+                    Профиль
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/login" className="hover:text-brand">
+                    Вход
                   </Link>
                 </li>
               </ul>
             </div>
             <div>
-              <p className="font-medium text-zinc-900">Ma’lumot</p>
+              <p className="font-medium text-zinc-900">Оформление</p>
               <ul className="mt-2 space-y-1 text-zinc-600">
                 <li>
                   <Link href="/checkout" className="hover:text-brand">
-                    Buyurtma
+                    Оформить заказ
                   </Link>
                 </li>
               </ul>
